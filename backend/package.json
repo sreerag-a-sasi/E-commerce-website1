@@ -1,0 +1,27 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sreerag-a-sasi/e-commerce-website.git"
+  },
+  "author": "Sreerag-a-sasi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sreerag-a-sasi/e-commerce-website/issues"
+  },
+  "homepage": "https://github.com/sreerag-a-sasi/e-commerce-website#readme",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.8.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
