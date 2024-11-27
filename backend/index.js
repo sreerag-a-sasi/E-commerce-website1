@@ -111,7 +111,27 @@ app.post('/addproduct',async(req,res)=>{
 
 //creating api for deleting products
 
-app.post('/removeproduct')
+app.post('/removeproduct',async(req,res)=>{
+    await Product.findOneAndDelete({id:req.body.id});
+    let id = req.body.id;
+    console.log(`item with id number "${id}" has been removed`);
+    res.json({
+        success:true,
+        name:req.body.name,
+    })
+    
+})
+
+
+app.get('/allproducts',async(req,res)=>{
+    let products = await Product.find({});
+    console.log("All Products Fetched");
+    res.send(products);
+})
+
+
+
+
 
 
 app.listen(port,(error)=>{
