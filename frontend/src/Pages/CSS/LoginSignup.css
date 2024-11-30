@@ -1,8 +1,9 @@
 .loginsignup{
     width: 100%;
-    height: 80vh;
+    height: auto;
     background: #fce3fe;
     padding-top: 100px;
+    padding-bottom: 60px;
 }
 .loginsignup-container{
     width: 580px;
@@ -49,6 +50,7 @@
 .loginsignup-login span{
     color: #ff4141;
     font-weight: 600;
+    cursor: pointer;
 }
 .loginsignup-agree{
     display: flex;
