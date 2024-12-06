@@ -32,6 +32,10 @@
     cursor: pointer;
 }
 
+.footer-links li a{
+    color: #252525;
+}
+
 .footer-social-icon {
     display: flex;
     gap: 20px;

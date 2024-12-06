@@ -39,7 +39,7 @@ const ProductDisplay = (props) => {
                     </div>
                 </div>
                 <div className="productdisplay-right-description">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Atque assumenda iure accusamus nostrum facere dolore cum expedita commodi repellat perspiciatis laborum exercitationem vero dolor error necessitatibus, nulla at ullam iusto?
+                    {product.description}
                 </div>
                 <div className="productdisplay-right-size">
                     <h1>Select Size</h1>

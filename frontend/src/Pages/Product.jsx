@@ -7,17 +7,26 @@ import { DescriptionBox } from "../Components/DescriptionBox/DescriptionBox";
 import { RelatedProducts } from "../Components/RelatedProducts/RelatedProducts";
 
 const Product = () => {
-    const { all_product } = useContext(ShopContext)
+    const { allProduct } = useContext(ShopContext);
     const { productId } = useParams();
-    const product = all_product.find((e) => e.id === Number(productId));
+
+    // Check if allProduct is defined and find the product
+    const product = allProduct ? allProduct.find((e) => e.id === Number(productId)) : null;
+
     return (
         <div>
-            <Breadcrum product={product} />
-            <ProductDisplay product={product} />
-            <DescriptionBox/>
-            <RelatedProducts/>
+            {product ? (
+                <>
+                    <Breadcrum product={product} />
+                    <ProductDisplay product={product} />
+                    <DescriptionBox product={product} />
+                    <RelatedProducts product={product} />
+                </>
+            ) : (
+                <p>Loading...</p> // Display a loading message or a placeholder
+            )}
         </div>
-    )
-}
+    );
+};
 
 export default Product;
