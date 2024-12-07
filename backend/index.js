@@ -307,11 +307,30 @@ app.get("/", (req, res) => {
     res.send("express app is running");
 });
 
-// Image Storage Engine
+// // Image Storage Engine
+// const storage = multer.diskStorage({
+//     destination: './upload/images',
+//     filename: (req, file, cb) => {
+//         return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+//     }
+// });
+
+// const upload = multer({ storage: storage });
+
+// // Creating upload endpoint for images
+// app.use('/images', express.static('upload/images'));
+
+// app.post("/upload", upload.single('product'), (req, res) => {
+//     res.json({
+//         success: 1,
+//         image_url: `http://localhost:${port}/images/${req.file.filename}`
+//     });
+// });
+
 const storage = multer.diskStorage({
     destination: './upload/images',
     filename: (req, file, cb) => {
-        return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+        return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
     }
 });
 
@@ -320,10 +339,11 @@ const upload = multer({ storage: storage });
 // Creating upload endpoint for images
 app.use('/images', express.static('upload/images'));
 
-app.post("/upload", upload.single('product'), (req, res) => {
+app.post("/upload", upload.array('product_images', 10), (req, res) => {
+    const imageUrls = req.files.map(file => `http://localhost:${port}/images/${file.filename}`);
     res.json({
         success: 1,
-        image_url: `http://localhost:${port}/images/${req.file.filename}`
+        image_urls: imageUrls
     });
 });
 
@@ -338,7 +358,7 @@ const Product = mongoose.model("Product", {
         required: true,
     },
     image: {
-        type: String,
+        type: [String],
         required: true,
     },
     category: {
@@ -357,7 +377,6 @@ const Product = mongoose.model("Product", {
     },
     available: {
         type: Number,
-        required: true,
     },
     description: {
         type: String,
@@ -365,45 +384,149 @@ const Product = mongoose.model("Product", {
     },
 });
 
+// app.post('/addproduct', async (req, res) => {
+
+//     let products = await Product.find({});
+//     let id;
+//     if (products.length > 0) {
+//         let last_product_array = products.slice(-1);
+//         let last_product = last_product_array[0];
+//         id = last_product.id + 1;
+//     } else {
+//         id = 1;
+//     }
+//     const product = new Product({
+//         id: id,
+//         name: req.body.name,
+//         image: req.body.image,
+//         category: req.body.category,
+//         new_price: req.body.new_price,
+//         old_price: req.body.old_price,
+//         available: req.body.available,
+//         description: req.body.description,
+//     });
+//     console.log(product);
+//     await product.save();
+//     console.log("Saved");
+//     res.json({
+//         success: true,
+//         name: req.body.name,
+//     });
+// });
+
+// app.post('/addproduct', async (req, res) => {
+//     let products = await Product.find({});
+//     let id;
+//     if (products.length > 0) {
+//         let last_product_array = products.slice(-1);
+//         let last_product = last_product_array[0];
+//         id = last_product.id + 1;
+//     } else {
+//         id = 1;
+//     }
+
+//     const product = new Product({
+//         id: id,
+//         name: req.body.name,
+//         image: req.body.image_url, // Adjusted to handle multiple image URLs
+//         category: req.body.category,
+//         new_price: req.body.new_price,
+//         old_price: req.body.old_price,
+//         available: req.body.available,
+//         description: req.body.description,
+//     });
+
+//     console.log(product);
+//     await product.save();
+//     console.log("Saved");
+
+//     res.json({
+//         success: true,
+//         name: req.body.name,
+//     });
+// });
+
 app.post('/addproduct', async (req, res) => {
     let products = await Product.find({});
     let id;
     if (products.length > 0) {
-        let last_product_array = products.slice(-1);
-        let last_product = last_product_array[0];
+        let last_product = products[products.length - 1];
         id = last_product.id + 1;
     } else {
         id = 1;
     }
+
     const product = new Product({
         id: id,
         name: req.body.name,
-        image: req.body.image,
+        image: req.body.image, // Ensure this matches the key from the upload response
         category: req.body.category,
         new_price: req.body.new_price,
         old_price: req.body.old_price,
         available: req.body.available,
         description: req.body.description,
     });
-    console.log(product);
+
+    console.log('Product to be saved:', product);
     await product.save();
-    console.log("Saved");
+    console.log("Product saved");
+
     res.json({
         success: true,
         name: req.body.name,
     });
 });
 
+
+
+
+
 // Creating API for deleting products
+// app.post('/removeproduct', async (req, res) => {
+//     await Product.findOneAndDelete({ id: req.body.id });
+//     let id = req.body.id;
+//     console.log(`Item with id number "${id}" has been removed`);
+//     res.json({
+//         success: true,
+//         name: req.body.name,
+//     });
+// });
+
+const fs = require('fs');
+
 app.post('/removeproduct', async (req, res) => {
-    await Product.findOneAndDelete({ id: req.body.id });
-    let id = req.body.id;
-    console.log(`Item with id number "${id}" has been removed`);
-    res.json({
-        success: true,
-        name: req.body.name,
-    });
+    const { id } = req.body;
+
+    try {
+        const product = await Product.findOne({ id: id });
+        if (product) {
+            // Delete each image from the server
+            product.image.forEach(imageUrl => {
+                const filePath = path.join(__dirname, 'upload', 'images', path.basename(imageUrl));
+                fs.unlink(filePath, (err) => {
+                    if (err) {
+                        console.error(`Failed to delete image at ${filePath}: `, err);
+                    } else {
+                        console.log(`Image deleted at ${filePath}`);
+                    }
+                });
+            });
+
+            // Remove the product from the database
+            await Product.deleteOne({ id: id });
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ success: false, message: 'Product not found' });
+        }
+    } catch (error) {
+        console.error('Error removing product:', error);
+        res.status(500).json({ success: false, message: 'An error occurred while removing the product' });
+    }
 });
+
+
+
+
 
 app.get('/allproducts', async (req, res) => {
     let product = await Product.find({});
@@ -483,12 +606,24 @@ app.post('/login', async (req, res) => {
 });
 
 // Creating endpoint for new collection data
+// app.get('/newcollections', async (req, res) => {
+//     let products = await Product.find({});
+//     let newcollection = products.slice(1).slice(-8);
+//     console.log("New collections fetched: ", newcollection);
+//     res.send(newcollection);
+// });
+
 app.get('/newcollections', async (req, res) => {
-    let products = await Product.find({});
-    let newcollection = products.slice(1).slice(-8);
-    console.log("New collections fetched: ", newcollection);
-    res.send(newcollection);
+    try {
+        let products = await Product.find({}).sort({ _id: -1 }).limit(8); // Sort by _id in descending order to get the newest products and limit to 8
+        console.log("New collections fetched: ", products);
+        res.send(products);
+    } catch (error) {
+        console.error('Error fetching new collections:', error);
+        res.status(500).send('An error occurred while fetching new collections');
+    }
 });
+
 
 // Creating endpoint for popular in women's category
 app.get('/popularinwomen', async (req, res) => {
@@ -556,13 +691,13 @@ app.post('/addtocart', fetchUser, async (req, res) => {
         }
 
         userData.cartData[req.body.itemId] += 1;
-        
+
         await Users.findOneAndUpdate(
-            { _id: req.user.id }, 
+            { _id: req.user.id },
             { cartData: userData.cartData },
             { new: true } // Option to return the updated document
         );
-        
+
         res.status(200).send("Item added to the cart");
     } catch (error) {
         console.error("Error adding item to the cart:", error);

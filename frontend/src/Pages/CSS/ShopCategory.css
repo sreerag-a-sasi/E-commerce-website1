@@ -6,6 +6,7 @@
 .shopcategory-indexSort{
     display: flex;
     margin: 0px 170px;
+    padding-bottom: 20px;
     justify-content: space-between;
     align-items: center;
 }
@@ -13,6 +14,10 @@
     padding: 10px 20px;
     border-radius: 40px;
     border: 1px solid #888;
+    font-size: 14px;
+}
+.shopcategory-dropdown option{
+    border: none;
 }
 .shopcategory-indexSort p span{
     font-weight: 600;
@@ -48,7 +53,6 @@
     }
     .shopcategory-sort{
         padding: 5px 10px;
-        font-size: 10px;
     }
     .shopcategory-indexSort p{
         font-size: 12px;
@@ -80,6 +84,9 @@
         width: 150px;
         height: 40px;
         font-size: 13px;
+    }
+    .shopcategory-sort{
+        font-size: 10px;
     }
 }
 @media(max-width:500px){

@@ -4,6 +4,7 @@
     align-items: center;
     gap: 10px;
     height: 90vh;
+    padding-bottom: 50px;
 }
 .popular h1{
     color: #171717;
@@ -23,7 +24,7 @@
 }
 @media (max-width:1280px){
     .popular{
-        height: 70vh;
+        height: 40vh;
     }
     .popular h1{
         font-size: 40px;
@@ -40,6 +41,7 @@
 @media (max-width:1024px){
     .popular{
         height: 60vh;
+        max-height: 500px;
     }
     .popular h1{
         font-size: 30px;
@@ -72,6 +74,7 @@
 @media (max-width:500px){
     .popular{
         height: 90vh;
+        max-height: 700px;
     }
     .popular hr{
         width: 160px;
