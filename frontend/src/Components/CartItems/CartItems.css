@@ -29,16 +29,28 @@
 }
 
 .cartitems-remove-icon {
-    width: 15px;
+    width: 20px;
+    margin: 0px 40px;
+    cursor: pointer;
+}
+.cartitems-delete-icon{
+    width: 30px;
     margin: 0px 40px;
     cursor: pointer;
 }
 
 .cartitems-quantity {
-    width: 64px;
-    height: 50px;
-    border: 2px solid #ebebeb;
     background: #fff;
+    text-align: center;
+    justify-self: center;
+}
+.quantity{
+    display: flex;
+    padding: 5px;
+    justify-items: center;
+    justify-content: center;
+    align-items: center;
+    justify-self: center;
 }
 
 .cartitems-down {
@@ -113,7 +125,7 @@
     }
 
     .cartitems-format-main {
-        grid-template-columns: 0.5fr 3fr 0.5fr 0.5fr 0.5fr 0.5fr;
+        grid-template-columns: 0.5fr 2fr 0.5fr 0.5fr 0.5fr 0.5fr;
         gap: 20px;
         padding: 15px 0px;
         font-size: 15px;

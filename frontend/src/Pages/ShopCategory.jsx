@@ -50,7 +50,7 @@ const ShopCategory = (props) => {
                     <span>Showing {totalProducts > 1 ? 1 : totalProducts}-{displayCount > totalProducts ? totalProducts : displayCount}</span> out of {totalProducts} products
                 </p>
                 <div className="shopcategory-sort-container">
-                    <select className="shopcategory-sort" onChange={handleSortChange} value={sortOption} defaultValue="">
+                    <select className="shopcategory-sort" onChange={handleSortChange} value={sortOption}>
                         <option value="" disabled hidden>Sort by</option>
                         <option value="date">Date Added</option>
                         <option value="price">Lowest Price</option>

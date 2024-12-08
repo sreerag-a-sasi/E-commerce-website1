@@ -718,6 +718,48 @@ app.post('/removefromcart', fetchUser, async (req, res) => {
         res.status(400).send({ errors: "Item not found in cart or quantity is already zero" });
     }
 });
+//incrementing the number of same item
+app.post('/addfromcart', fetchUser, async (req, res) => {
+    let userData = await Users.findOne({ _id: req.user.id }); // Defined userData here
+    if (userData.cartData[req.body.itemId] != 0) { // Ensure item exists in cart
+        console.log("Item with the id:", req.body.itemId, "quantity is being increased in the cart");
+        userData.cartData[req.body.itemId] += 1;
+        await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData });
+        res.send("Item quantity increased in the cart");
+    } else {
+        res.status(400).send({ errors: "Item not found in cart" });
+    }
+});
+
+
+//deleting an item from cart
+
+app.post('/deletefromcart', fetchUser, async (req, res) => {
+    try {
+        const itemId = req.body.itemId;
+        console.log("Item with the id:", itemId, "is being deleted from the cart");
+        
+        let userData = await Users.findOne({ _id: req.user.id });
+
+        if (userData.cartData && userData.cartData[itemId]) {
+            delete userData.cartData[itemId];
+
+            await Users.findOneAndUpdate(
+                { _id: req.user.id },
+                { cartData: userData.cartData },
+                { new: true } // Option to return the updated document
+            );
+
+            res.status(200).send("Item deleted from the cart");
+        } else {
+            res.status(404).send("Item not found in the cart");
+        }
+    } catch (error) {
+        console.error("Error deleting item from the cart:", error);
+        res.status(500).send("Error deleting item from the cart");
+    }
+});
+
 
 // Creating endpoint for saving and retrieving cart data
 app.post('/getcart', fetchUser, async (req, res) => {

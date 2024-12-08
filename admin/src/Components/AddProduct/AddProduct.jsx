@@ -672,6 +672,12 @@ const AddProduct = () => {
     }
 
     const Add_Product = async () => {
+        // Validation check
+        if (!productDetails.name || !productDetails.old_price || !productDetails.new_price || !productDetails.available || !productDetails.description || image.length === 0) {
+            alert("Please fill in all fields before submitting.");
+            return;
+        }
+
         let responseData;
         let product = { ...productDetails };
         let imageUrls = [];
@@ -703,25 +709,25 @@ const AddProduct = () => {
         <div className='add-product'>
             <div className="addproduct-itemfield">
                 <p>Product title</p>
-                <input value={productDetails.name} onChange={changeHandler} type="text" name='name' placeholder='Type here' />
+                <input value={productDetails.name} onChange={changeHandler} type="text" name='name' placeholder='Type here' required />
             </div>
             <div className="addproduct-price">
                 <div className="addproduct-itemfield">
                     <p>Price</p>
-                    <input value={productDetails.old_price} onChange={changeHandler} type="text" name="old_price" placeholder='Type here' />
+                    <input value={productDetails.old_price} onChange={changeHandler} type="text" name="old_price" placeholder='Type here' required />
                 </div>
                 <div className="addproduct-itemfield">
                     <p>Offer Price</p>
-                    <input value={productDetails.new_price} onChange={changeHandler} type="text" name="new_price" placeholder='Type here' />
+                    <input value={productDetails.new_price} onChange={changeHandler} type="text" name="new_price" placeholder='Type here' required />
                 </div>
                 <div className="addproduct-itemfield">
                     <p>Product Nos</p>
-                    <input value={productDetails.available} onChange={changeHandler} type="text" name="available" placeholder='Type here' />
+                    <input value={productDetails.available} onChange={changeHandler} type="text" name="available" placeholder='Type here' required />
                 </div>
             </div>
             <div className="addproduct-itemfield">
                 <p>Product Details</p>
-                <textarea value={productDetails.description} className='description' onChange={changeHandler} name="description" placeholder='Type here' />
+                <textarea value={productDetails.description} className='description' onChange={changeHandler} name="description" placeholder='Type here' required />
             </div>
             <div className="addproduct-itemfield">
                 <p>Product Category</p>
@@ -735,7 +741,7 @@ const AddProduct = () => {
                 <label htmlFor="file-input">
                     <img src={image.length > 0 ? URL.createObjectURL(image[0]) : upload_area} className='addproduct-thumnail-img' alt="" />
                 </label>
-                <input onChange={imageHandler} type="file" name='images' id='file-input' multiple hidden />
+                <input onChange={imageHandler} type="file" name='images' id='file-input' multiple hidden required />
             </div>
             <button onClick={Add_Product} className="addproduct-btn">Add</button>
         </div>
