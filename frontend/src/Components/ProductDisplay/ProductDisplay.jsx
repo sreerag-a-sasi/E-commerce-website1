@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import './ProductDisplay.css';
 import star_icon from "../Assets/star_icon.png";
 import star_dull_icon from "../Assets/star_dull_icon.png";
@@ -7,17 +7,18 @@ import { ShopContext } from '../../Context/ShopContext';
 const ProductDisplay = (props) => {
     const { product } = props;
     const { addToCart } = useContext(ShopContext);
+    const [mainImage, setMainImage] = useState(product.image[0]); // State for main image
 
     return (
         <div className='productdisplay'>
             <div className="productdisplay-left">
                 <div className="productdisplay-img-list">
                     {product.image.map((img, index) => (
-                        <img key={index} src={img} alt="" />
+                        <img key={index} src={img} alt="" onClick={() => setMainImage(img)} /> // Update main image on click
                     ))}
                 </div>
                 <div className="productdisplay-img">
-                    <img className='productdisplay-main-img' src={product.image[0]} alt="" />
+                    <img className='productdisplay-main-img' src={mainImage} alt="" />
                 </div>
             </div>
             <div className="productdisplay-right">
@@ -52,7 +53,7 @@ const ProductDisplay = (props) => {
                     </div>
                 </div>
                 <button onClick={() => { addToCart(product.id) }}>ADD TO CART</button>
-                <button >BUY NOW</button>
+                <button>BUY NOW</button>
                 <p className="productdisplay-right-category"><span>Category :</span>{product.category}</p>
                 <p className="productdisplay-right-category"><span>Tags :</span>Modern, Latest</p>
             </div>

@@ -13,6 +13,7 @@
 }
 .productdisplay-img-list img{
     height: 163px;
+    cursor: pointer;
 }
 .productdisplay-main-img{
     width: 586px;

@@ -1,0 +1,94 @@
+body {
+    background-color: #f8f8f8; /* Off-white background */
+    font-family: Arial, sans-serif;
+}
+
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #ffffff; /* White background for the profile section */
+    border-radius: 10px;
+    width: 50%;
+    margin: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+}
+
+.profileimage-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.profileimage {
+    width: 150px;
+    height: 150px;
+    border: 2px solid #cccccc;
+    border-radius: 50%; /* Rounded profile image */
+}
+
+.profile-form {
+    width: 100%;
+    margin: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 96%;
+    padding: 10px;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+.password-group .password-container {
+    display: flex;
+    align-items: center;
+}
+
+.password-group input {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.password-group button {
+    padding: 10px;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    background-color: #ffffff;
+    cursor: pointer;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.home-button {
+    padding: 10px;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    background-color: #ffffff;
+    cursor: pointer;
+}
+
+.back-button {
+    padding: 10px;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    background-color: #ffffff;
+    cursor: pointer;
+}
