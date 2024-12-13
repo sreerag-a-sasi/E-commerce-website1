@@ -440,6 +440,7 @@ import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { ShopContext } from "../../Context/ShopContext";
 import nav_dropdown from '../Assets/nav_dropdown.png';
 import profileimage from '../Assets/profileimage.png';
+import logoutIcon from '../Assets/logout.png'
 
 const Navbar = () => {
     const [menu, setMenu] = useState("shop");
@@ -520,7 +521,17 @@ const Navbar = () => {
                 {localStorage.getItem('auth-token')
                     ? (
                         <>
-                            <button onClick={() => { localStorage.removeItem('auth-token'); window.location.replace('/') }}>Logout</button>
+                            {/* <button onClick={() => { localStorage.removeItem('auth-token'); window.location.replace('/') }}>Logout</button> */}
+                            <img 
+                                src={logoutIcon} 
+                                alt="Logout" 
+                                onClick={() => { 
+                                    localStorage.removeItem('auth-token'); 
+                                    window.location.replace('/');
+                                }} 
+                                className="logout"
+                                style={{ cursor: 'pointer' }} 
+                            />
                             <Link style={{ textDecoration: 'none' }} to='/cart' onClick={handleCartClick}><img src={cart_icon} alt="Cart" /></Link>
                             <div className="nav-cart-count">{getTotalCartItems()}</div>
                             <div className="profile-image" onClick={handleProfileClick}> {/* Add onClick to navigate */}

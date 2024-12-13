@@ -112,6 +112,11 @@
 
 
 
+
+
+
+
+
 import React, { createContext, useEffect, useState } from "react";
 
 export const ShopContext = createContext();
@@ -122,6 +127,12 @@ const ShopContextProvider = (props) => {
         const savedCart = localStorage.getItem('cartItems');
         return savedCart ? JSON.parse(savedCart) : {};
     });
+
+    const [wishlistItems, setWishlistItems] = useState(() => {
+        const savedWishlist = localStorage.getItem('wishlistItems');
+        return savedWishlist ? JSON.parse(savedWishlist) : {};
+    });
+
 
     useEffect(() => {
         // Fetch all products
@@ -144,6 +155,20 @@ const ShopContextProvider = (props) => {
                 .then((response) => response.json())
                 .then((data) => setCartItems(data))
                 .catch((error) => console.error('Error fetching cart:', error));
+        }
+        if (localStorage.getItem('auth-token')) {
+            fetch('http://localhost:4000/getwishlist', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'auth-token': localStorage.getItem('auth-token'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+                .then((response) => response.json())
+                .then((data) => setWishlistItems(data))
+                .catch((error) => console.error('Error fetching wishlist:', error));
         }
     }, []);
 
@@ -179,7 +204,7 @@ const ShopContextProvider = (props) => {
     // };
 
 
-        const addToCart = (itemId) => {
+    const addToCart = (itemId) => {
         setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
         if (localStorage.getItem('auth-token')) {
             fetch('http://localhost:4000/addtocart', {
@@ -191,14 +216,38 @@ const ShopContextProvider = (props) => {
                 },
                 body: JSON.stringify({ "itemId": itemId })
             })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then((data) => console.log(data))
+                .catch((error) => console.error('Fetch error:', error));
+        }
+    };
+
+
+    const addToWishlist = (itemId) => {
+        setWishlistItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
+        if (localStorage.getItem('auth-token')) {
+            fetch('http://localhost:4000/addtowishlist', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'auth-token': localStorage.getItem('auth-token'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ "itemId": itemId })
             })
-            .then((data) => console.log(data))
-            .catch((error) => console.error('Fetch error:', error));
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then((data) => console.log(data))
+                .catch((error) => console.error('Fetch error:', error));
         }
     };
 
@@ -225,7 +274,30 @@ const ShopContextProvider = (props) => {
         }
     };
 
-   
+    const deleteFromWishlist = (itemId) => {
+        const updatedWishlist = { ...wishlistItems };
+        delete updatedWishlist[itemId];
+        setWishlistItems(updatedWishlist);
+    
+        if (localStorage.getItem('auth-token')) {
+            fetch('http://localhost:4000/deletefromwishlist', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'auth-token': localStorage.getItem('auth-token'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ itemId })
+            })
+            .then((response) => response.json())
+            .then((data) => console.log(data))
+            .catch((error) => console.error('Error deleting from wishlist:', error));
+            alert("Item removed from wishlist");
+        }
+    };
+    
+
+
     const removeFromCart = (itemId) => {
         setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
         if (localStorage.getItem('auth-token')) {
@@ -243,7 +315,7 @@ const ShopContextProvider = (props) => {
             // alert("item removed")
         }
     };
-    
+
     const addFromCart = (itemId) => {
         setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
         if (localStorage.getItem('auth-token')) {
@@ -261,46 +333,46 @@ const ShopContextProvider = (props) => {
             // alert("item added")
         }
     };
-    
-    
+
+
     const getTotalCartAmount = () => {
         let totalAmount = 0;
-    
+
         // Iterate over the cartItems object (key is item id, value is quantity)
         Object.keys(cartItems).forEach(itemId => {
             const quantity = cartItems[itemId];
-    
+
             // Only consider items with a positive quantity
             if (quantity > 0) {
                 // Find the product with the matching id
                 const itemInfo = allProduct.find(product => product.id === Number(itemId));
-    
+
                 // If the product exists, add to the total amount
                 if (itemInfo) {
                     totalAmount += itemInfo.new_price * quantity;
                 }
             }
         });
-    
+
         return totalAmount;
     };
-    
 
-// const getTotalCartItems = () => {
-//     let totalItem = 0;
-//     for (const item in cartItems) {
-//         if (cartItems[item] > 0) {
-//             totalItem += cartItems[item];
-//         }
-//     }
-//     return totalItem;
-// };
-    
-const getTotalCartItems= () => {
-    // The number of unique items is the number of keys in the cartItems object
-    return Object.keys(cartItems).filter(itemId => cartItems[itemId] > 0).length;
-};
-// console.log(getTotalCartItems());  
+
+    // const getTotalCartItems = () => {
+    //     let totalItem = 0;
+    //     for (const item in cartItems) {
+    //         if (cartItems[item] > 0) {
+    //             totalItem += cartItems[item];
+    //         }
+    //     }
+    //     return totalItem;
+    // };
+
+    const getTotalCartItems = () => {
+        // The number of unique items is the number of keys in the cartItems object
+        return Object.keys(cartItems).filter(itemId => cartItems[itemId] > 0).length;
+    };
+    // console.log(getTotalCartItems());  
 
 
     const contextValue = {
@@ -310,9 +382,14 @@ const getTotalCartItems= () => {
         addFromCart,
         removeFromCart,
         deleteFromCart,
+        wishlistItems,
+        deleteFromWishlist,
         getTotalCartAmount,
         getTotalCartItems,
+        addToWishlist,
+        setWishlistItems // Ensure setWishlistItems is included here 
     };
+
 
     return (
         <ShopContext.Provider value={contextValue}>

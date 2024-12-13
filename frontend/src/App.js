@@ -54,7 +54,8 @@ import women_banner from './Components/Assets/banner_women.png';
 import kid_banner from './Components/Assets/banner_kids.png';
 import CartItems from './Components/CartItems/CartItems';
 import ProductDisplay from './Components/ProductDisplay/ProductDisplay';
-import ProfilePage from './Components/Profile/ProfilePage'; // Import the Profile component
+import ProfilePage from './Components/Profile/ProfilePage';
+import Wishlist from './Components/Wishlist/Wishlist'; // Import the Wishlist component
 
 function App() {
   return (
@@ -75,6 +76,7 @@ function App() {
           <Route path="/cart" element={<CartItems />} />
           <Route path="/product/:id" element={<ProductDisplay />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/wishlist" element={<Wishlist />} />
         </Routes>
         <Footer />
       </BrowserRouter>
@@ -83,4 +85,5 @@ function App() {
 }
 
 export default App;
+
 

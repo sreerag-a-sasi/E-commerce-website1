@@ -11,6 +11,7 @@ const userSchema = new Schema({
     phone: String,
     image: String,
     cartData: Object,
+    Wishlist:Object,
     date: {
         type: Date,
         default: Date.now,

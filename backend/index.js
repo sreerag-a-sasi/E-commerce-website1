@@ -316,8 +316,8 @@ mongoose.connect("mongodb+srv://sreerag-a-sasi:killer027on@cluster0.zw9vy.mongod
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
-.then(() => console.log("Connected to MongoDB"))
-.catch((err) => console.error("MongoDB connection error:", err));
+    .then(() => console.log("Connected to MongoDB"))
+    .catch((err) => console.error("MongoDB connection error:", err));
 
 // Import models
 const Users = require('./models/User');
@@ -398,7 +398,7 @@ app.post('/addproduct', async (req, res) => {
         category: req.body.category,
         new_price: req.body.new_price,
         old_price: req.body.old_price,
-        available:req.body.available,
+        available: req.body.available,
         description: req.body.description,
     });
     console.log(product);
@@ -449,6 +449,10 @@ app.post('/signup', async (req, res) => {
         for (let i = 0; i < 300; i++) {
             cart[i] = 0;
         }
+        let wishlist = {};
+        for (let i = 0; i < 300; i++) {
+            wishlist[i] = 0;
+        }
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -461,6 +465,7 @@ app.post('/signup', async (req, res) => {
             phone: req.body.phone,
             image: req.body.image,
             cartData: cart,
+            Wishlist: wishlist,
         });
 
         // Save user to database
@@ -560,10 +565,10 @@ app.get('/relatedproducts', async (req, res) => {
 app.post('/getcart', fetchUser, async (req, res) => {
     try {
         console.log("Fetching cart data for user:", req.user.user_id);
-        
+
         // Fetch user data from the database
         const userData = await Users.findOne({ _id: req.user.user_id });
-        
+
         // Check if the user exists
         if (!userData) {
             console.error("User not found");
@@ -571,7 +576,7 @@ app.post('/getcart', fetchUser, async (req, res) => {
         }
 
         // Log the fetched user data
-        console.log("Fetched user data for :", userData.name," email : ",userData.email);
+        console.log("Fetched user data for :", userData.name, " email : ", userData.email);
 
         // Check if the cartData exists and is not empty
         if (!userData.cartData || userData.cartData.length === 0) {
@@ -587,6 +592,36 @@ app.post('/getcart', fetchUser, async (req, res) => {
     }
 });
 
+
+app.post('/getwishlist', fetchUser, async (req, res) => {
+    try {
+        console.log("Fetching cart data for user:", req.user.user_id);
+
+        // Fetch user data from the database
+        const userData = await Users.findOne({ _id: req.user.user_id });
+
+        // Check if the user exists
+        if (!userData) {
+            console.error("User not found");
+            return res.status(404).json({ success: false, errors: "User not found" });
+        }
+
+        // Log the fetched user data
+        console.log("Fetched user data for :", userData.name, " email : ", userData.email, userData.Wishlist);
+
+        // Check if the cartData exists and is not empty
+        if (!userData.Wishlist || userData.Wishlist.length === 0) {
+            console.log("Wishlist is empty for user:", req.user.user_id);
+            return res.status(200).json({ success: true, Wishlist: [] });
+        }
+
+        // Send the cart data
+        res.json(userData.Wishlist);
+    } catch (error) {
+        console.error("Error retrieving wishlist data:", error);
+        res.status(500).json({ success: false, errors: "Internal Server Error" });
+    }
+});
 
 app.post('/addtocart', fetchUser, async (req, res) => {
     try {
@@ -620,6 +655,63 @@ app.post('/addtocart', fetchUser, async (req, res) => {
         });
     }
 });
+
+
+app.post('/addtowishlist', fetchUser, async (req, res) => {
+    try {
+        const { itemId } = req.body;
+
+        if (!itemId) {
+            return res.status(400).json({ message: "Invalid item ID" });
+        }
+
+        console.log("Adding item to wishlist:", itemId);
+
+        const updatedUser = await Users.findByIdAndUpdate(
+            req.user.user_id,
+            { $addToSet: { Wishlist: itemId } }, // Ensure item is added only once
+            { upsert: true, new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({
+            message: "Item added to the wishlist",
+            Wishlist: updatedUser.Wishlist,
+        });
+    } catch (error) {
+        console.error("Error adding item to the wishlist:", error);
+        res.status(500).json({
+            message: "Error adding item to the wishlist",
+            error: error.message,
+        });
+    }
+});
+
+
+app.post('/deletefromwishlist', fetchUser, async (req, res) => {
+    try {
+        const { itemId } = req.body;
+        console.log("Attempting to delete item from wishlist:", itemId);
+
+        const userData = await Users.findOne({ _id: req.user.user_id });
+        if (userData.Wishlist && userData.Wishlist[itemId]) {
+            delete userData.Wishlist[itemId];
+            await userData.save();
+            console.log("Item successfully deleted from wishlist");
+            res.status(200).send("Item deleted from the wishlist");
+        } else {
+            console.error("Item not found in cart");
+            res.status(404).send({ errors: "Item not found in wishlist" });
+        }
+    } catch (error) {
+        console.error("Error deleting item from wishlist:", error);
+        res.status(500).send("Error deleting item from the wishlist");
+    }
+});
+
 
 
 // Other cart endpoints: removefromcart, addfromcart, deletefromcart

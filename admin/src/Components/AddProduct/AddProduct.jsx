@@ -646,7 +646,14 @@ const AddProduct = () => {
     });
 
     const imageHandler = (e) => {
-        const files = Array.from(e.target.files);
+        let files = Array.from(e.target.files);
+
+        // Select only the first 4 files if more than 4 are selected
+        if (files.length > 4) {
+            alert("You have selected more than 4 images. Only the first 4 will be uploaded.");
+            files = files.slice(0, 4);
+        }
+
         setImage(files);
         console.log('Selected images:', files);
     }

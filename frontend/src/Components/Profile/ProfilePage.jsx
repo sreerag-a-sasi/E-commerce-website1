@@ -144,6 +144,9 @@ const ProfilePage = () => {
     const handleBackClick = () => {
         navigate(-1); // Navigate to the previous page
     };
+    const handlewishlist = () => {
+        navigate('/wishlist'); // Navigate to the home page
+    };
 
     return (
         <div className="profile-container">
@@ -199,6 +202,9 @@ const ProfilePage = () => {
                 <div className="form-buttons">
                     <button type="button" onClick={handleHomeClick} className="home-button">
                         Home
+                    </button>
+                    <button type="button" onClick={handlewishlist} className="home-button">
+                        wishlist
                     </button>
                     <button type="button" onClick={handleBackClick} className="back-button">
                         Back
