@@ -516,6 +516,12 @@ app.get('/allproducts', async (req, res) => {
     res.send(product);
 });
 
+// app.get('/userlist', async (req, res) => {
+//     let users = await Users.find({});
+//     console.log("All users Fetched (from index.js backend)");
+//     res.send(users);
+// });
+
 app.get('/newcollections', async (req, res) => {
     try {
         // Fetch the newest 8 products, sorted by descending _id (assumes _id corresponds to creation time).
