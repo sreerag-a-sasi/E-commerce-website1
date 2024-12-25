@@ -1,0 +1,146 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    margin: 50px auto 0 auto; /* Top margin is 50px, left and right margins are auto */
+    width: 80%;
+    overflow: hidden;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+
+h2 {
+    color: #333;
+}
+
+.product-info, .billing-info, .payment-info, .order-summary {
+    margin-bottom: 20px;
+}
+
+.product-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.product-image {
+    width: 150px;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+.product-details {
+    font-size: 16px;
+    flex-grow: 1;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.order-summary p {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+.checkout-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.checkoutbutton {
+    background-color: #ff4d4d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 5px 0;
+}
+
+button:hover {
+    background-color: #ff3333;
+}
+
+/* Media Queries for Responsiveness */
+
+/* Small devices (phones, less than 768px) */
+@media (max-width: 767px) {
+    .container {
+        width: 95%;
+        padding: 10px;
+    }
+
+    .product-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .product-image {
+        width: 100%;
+        margin: 0 0 10px 0;
+    }
+
+    .product-details {
+        font-size: 14px;
+    }
+
+    .checkout-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    button {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .container {
+        width: 90%;
+    }
+
+    .product-image {
+        width: 120px;
+    }
+
+    .product-details {
+        font-size: 15px;
+    }
+
+    .checkout-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
+
+/* Large devices (desktops, 1024px and up) */
+@media (min-width: 1024px) {
+    .container {
+        width: 80%;
+    }
+}

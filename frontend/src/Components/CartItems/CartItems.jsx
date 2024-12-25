@@ -150,7 +150,9 @@ const CartItems = () => {
                             <h3>${getTotalCartAmount()}</h3>
                         </div>
                     </div>
-                    <button>PROCEED TO CHECKOUT</button>
+                    <button onClick={() => navigate('/checkout', { state: { products: allProduct.filter(product => cartItems[product.id] > 0) } })}>
+                        PROCEED TO CHECKOUT
+                    </button>
                 </div>
                 <div className="cartitem-promocode">
                     <p>If you have a promo code, enter it here:</p>

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Wishlist.css';
 import { ShopContext } from '../../Context/ShopContext';
@@ -7,6 +7,12 @@ import remove_icon from '../Assets/dustbin.png';
 const Wishlist = () => {
     const { allProduct, wishlistItems, deleteFromWishlist } = useContext(ShopContext);
     const navigate = useNavigate(); 
+
+    // Log wishlist items and all products to debug
+    useEffect(() => {
+        console.log('Wishlist Items:', wishlistItems);
+        console.log('All Products:', allProduct);
+    }, [wishlistItems, allProduct]);
 
     const redirectToProductPage = (productId) => {
         navigate(`/product/${productId}`);
@@ -22,7 +28,9 @@ const Wishlist = () => {
             </div>
             <hr />
             {allProduct.map((e) => {
-                if (wishlistItems[e.id] > 0) {
+                console.log(`Checking product with id: ${e.id}`);
+                if (wishlistItems[e.id]) {
+                    console.log(`Displaying product: ${e.name}`);
                     return (
                         <div key={e.id}>
                             <div className="wishlist-format wishlist-format-main">
@@ -40,11 +48,11 @@ const Wishlist = () => {
                         </div>
                     );
                 }
+                console.log(`Product with id: ${e.id} not in wishlist`);
                 return null;
             })}
         </div>
     );
 }
-
 
 export default Wishlist;

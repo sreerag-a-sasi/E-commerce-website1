@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ProductDisplay.css';
 import star_icon from "../Assets/star_icon.png";
 import star_dull_icon from "../Assets/star_dull_icon.png";
@@ -8,6 +9,12 @@ const ProductDisplay = (props) => {
     const { product } = props;
     const { addToCart } = useContext(ShopContext);
     const [mainImage, setMainImage] = useState(product.image[0]); // State for main image
+    const navigate = useNavigate(); // Initialize useNavigate
+
+    const handleBuyNow = () => {
+        addToCart(product.id); // Optionally add the item to cart
+        navigate('/checkout', { state: { product } }); // Navigate to the checkout page with product data
+    };
 
     return (
         <div className='productdisplay'>
@@ -53,7 +60,7 @@ const ProductDisplay = (props) => {
                     </div>
                 </div>
                 <button onClick={() => { addToCart(product.id) }}>ADD TO CART</button>
-                <button>BUY NOW</button>
+                <button onClick={handleBuyNow}>BUY NOW</button> {/* Add onClick to navigate to checkout */}
                 <p className="productdisplay-right-category"><span>Category :</span>{product.category}</p>
                 <p className="productdisplay-right-category"><span>Tags :</span>Modern, Latest</p>
             </div>

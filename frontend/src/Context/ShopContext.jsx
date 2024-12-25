@@ -19,19 +19,19 @@
 //             .then((response) => response.json())
 //             .then((data) => setAllProduct(data));
 
-//         if (localStorage.getItem('auth-token')) {
-//             fetch('http://localhost:4000/getcart', {
-//                 method: 'POST',
-//                 headers: {
-//                     Accept: 'application/json', // Correct content type
-//                     'auth-token': localStorage.getItem('auth-token'),
-//                     'Content-Type': 'application/json'
-//                 },
-//                 body: JSON.stringify({}) // Use an empty object for the body if necessary
-//             })
-//             .then((response) => response.json())
-//             .then((data) => setCartItems(data));
-//         }
+// if (localStorage.getItem('auth-token')) {
+//     fetch('http://localhost:4000/getcart', {
+//         method: 'POST',
+//         headers: {
+//             Accept: 'application/json', // Correct content type
+//             'auth-token': localStorage.getItem('auth-token'),
+//             'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify({}) // Use an empty object for the body if necessary
+//     })
+//     .then((response) => response.json())
+//     .then((data) => setCartItems(data));
+// }
 //     }, []);
 
 //     const addToCart = (itemId) => {
@@ -88,15 +88,15 @@
 //         return totalAmount;
 //     };
 
-//     const getTotalCartItems = () => {
-//         let totalItem = 0;
-//         for (const item in cartItems) {
-//             if (cartItems[item] > 0) {
-//                 totalItem += cartItems[item];
-//             }
+// const getTotalCartItems = () => {
+//     let totalItem = 0;
+//     for (const item in cartItems) {
+//         if (cartItems[item] > 0) {
+//             totalItem += cartItems[item];
 //         }
-//         return totalItem;
-//     };
+//     }
+//     return totalItem;
+// };
 
 //     const contextValue = { getTotalCartItems, getTotalCartAmount, allProduct, cartItems, addToCart, removeFromCart };
 
@@ -110,14 +110,48 @@
 // export default ShopContextProvider;
 
 
+// const addToCart = (itemId, size = '') => {
+//     const updatedCart = { ...cartItems };
+//     if (updatedCart[itemId]) {
+//         updatedCart[itemId].quantity += 1;
+//     } else {
+//         updatedCart[itemId] = { quantity: 1, size };
+//     }
+//     updateCartState(updatedCart);
+
+//     if (localStorage.getItem('auth-token')) {
+//         fetch('http://localhost:4000/addtocart', {
+//             method: 'POST',
+//             headers: {
+//                 Accept: 'application/json',
+//                 'auth-token': localStorage.getItem('auth-token'),
+//                 'Content-Type': 'application/json'
+//             },
+//             body: JSON.stringify({ itemId, size })
+//         })
+//             .then((response) => response.json())
+//             .then((data) => console.log(data))
+//             .catch((error) => console.error('Error adding to cart:', error));
+//         alert("Item added to cart");
+//     }
+// };
+
+
+// const getTotalCartItems = () => {
+//     let totalItem = 0;
+//     for (const item in cartItems) {
+//         if (cartItems[item] > 0) {
+//             totalItem += cartItems[item];
+//         }
+//     }
+//     return totalItem;
+// };
 
 
 
 
 
-
-
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useState, useEffect } from 'react';
 
 export const ShopContext = createContext();
 
@@ -130,18 +164,20 @@ const ShopContextProvider = (props) => {
 
     const [wishlistItems, setWishlistItems] = useState(() => {
         const savedWishlist = localStorage.getItem('wishlistItems');
-        return savedWishlist ? JSON.parse(savedWishlist) : {};
+        const parsedWishlist = savedWishlist ? JSON.parse(savedWishlist) : {};
+        console.log('Wishlist Items:', parsedWishlist); // Added console.log to see wishlist items
+        return parsedWishlist;
     });
 
-
     useEffect(() => {
-        // Fetch all products
         fetch('http://localhost:4000/allproducts')
             .then((response) => response.json())
-            .then((data) => setAllProduct(data))
+            .then((data) => {
+                console.log('Fetched Products:', data); // Log fetched products
+                setAllProduct(data);
+            })
             .catch((error) => console.error('Error fetching products:', error));
 
-        // Fetch cart items if the user is authenticated
         if (localStorage.getItem('auth-token')) {
             fetch('http://localhost:4000/getcart', {
                 method: 'POST',
@@ -153,9 +189,14 @@ const ShopContextProvider = (props) => {
                 body: JSON.stringify({})
             })
                 .then((response) => response.json())
-                .then((data) => setCartItems(data))
+                .then((data) => {
+                    // console.log('Fetched Cart:', data);
+                    setCartItems(data);
+                    localStorage.setItem('cartItems', JSON.stringify(data)); // Update localStorage
+                })
                 .catch((error) => console.error('Error fetching cart:', error));
         }
+
         if (localStorage.getItem('auth-token')) {
             fetch('http://localhost:4000/getwishlist', {
                 method: 'POST',
@@ -167,42 +208,53 @@ const ShopContextProvider = (props) => {
                 body: JSON.stringify({})
             })
                 .then((response) => response.json())
-                .then((data) => setWishlistItems(data))
+                .then((data) => {
+                    console.log('Fetched Wishlist:', data);
+                    if (data.success && Array.isArray(data.Wishlist)) {
+                        const wishlistObj = {};
+                        data.Wishlist.forEach(item => {
+                            wishlistObj[item] = true; // Use a boolean to mark items in the wishlist
+                        });
+                        setWishlistItems(wishlistObj);
+                    } else {
+                        console.error('Unexpected data format:', data);
+                    }
+                })
                 .catch((error) => console.error('Error fetching wishlist:', error));
         }
     }, []);
+
+    const deleteFromWishlist = (itemId) => {
+        // Update the local state to remove the item from the wishlist
+        const updatedWishlist = { ...wishlistItems };
+        delete updatedWishlist[itemId];
+        setWishlistItems(updatedWishlist);
+
+        // Update the local storage to remove the item from the wishlist
+        localStorage.setItem('wishlistItems', JSON.stringify(updatedWishlist));
+
+        // Send a request to the backend to update the wishlist
+        if (localStorage.getItem('auth-token')) {
+            fetch('http://localhost:4000/deletefromwishlist', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'auth-token': localStorage.getItem('auth-token'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ itemId })
+            })
+                .then((response) => response.json())
+                .then((data) => console.log(data))
+                .catch((error) => console.error('Error deleting from wishlist:', error));
+            alert("Item removed from wishlist");
+        }
+    };
 
     const updateCartState = (updatedCart) => {
         setCartItems(updatedCart);
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
     };
-
-    // const addToCart = (itemId, size = '') => {
-    //     const updatedCart = { ...cartItems };
-    //     if (updatedCart[itemId]) {
-    //         updatedCart[itemId].quantity += 1;
-    //     } else {
-    //         updatedCart[itemId] = { quantity: 1, size };
-    //     }
-    //     updateCartState(updatedCart);
-
-    //     if (localStorage.getItem('auth-token')) {
-    //         fetch('http://localhost:4000/addtocart', {
-    //             method: 'POST',
-    //             headers: {
-    //                 Accept: 'application/json',
-    //                 'auth-token': localStorage.getItem('auth-token'),
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify({ itemId, size })
-    //         })
-    //             .then((response) => response.json())
-    //             .then((data) => console.log(data))
-    //             .catch((error) => console.error('Error adding to cart:', error));
-    //         alert("Item added to cart");
-    //     }
-    // };
-
 
     const addToCart = (itemId) => {
         setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
@@ -227,9 +279,21 @@ const ShopContextProvider = (props) => {
         }
     };
 
-
     const addToWishlist = (itemId) => {
-        setWishlistItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
+        // Check if the item is already in the wishlist
+        if (wishlistItems[itemId]) {
+            console.log('Item is already in the wishlist');
+            return;
+        }
+
+        // Update the local state to add the item to the wishlist
+        setWishlistItems((prev) => {
+            const updatedWishlist = { ...prev, [itemId]: true }; // Use boolean true to mark presence
+            localStorage.setItem('wishlistItems', JSON.stringify(updatedWishlist));
+            return updatedWishlist;
+        });
+
+        // Send a request to the backend to update the wishlist
         if (localStorage.getItem('auth-token')) {
             fetch('http://localhost:4000/addtowishlist', {
                 method: 'POST',
@@ -238,7 +302,7 @@ const ShopContextProvider = (props) => {
                     'auth-token': localStorage.getItem('auth-token'),
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ "itemId": itemId })
+                body: JSON.stringify({ itemId })
             })
                 .then((response) => {
                     if (!response.ok) {
@@ -251,12 +315,12 @@ const ShopContextProvider = (props) => {
         }
     };
 
-
     const deleteFromCart = (itemId) => {
         const updatedCart = { ...cartItems };
         delete updatedCart[itemId];
-        updateCartState(updatedCart);
-
+        setCartItems(updatedCart);
+        localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+    
         if (localStorage.getItem('auth-token')) {
             fetch('http://localhost:4000/deletefromcart', {
                 method: 'POST',
@@ -273,30 +337,7 @@ const ShopContextProvider = (props) => {
             alert("Item removed from cart");
         }
     };
-
-    const deleteFromWishlist = (itemId) => {
-        const updatedWishlist = { ...wishlistItems };
-        delete updatedWishlist[itemId];
-        setWishlistItems(updatedWishlist);
     
-        if (localStorage.getItem('auth-token')) {
-            fetch('http://localhost:4000/deletefromwishlist', {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'auth-token': localStorage.getItem('auth-token'),
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ itemId })
-            })
-            .then((response) => response.json())
-            .then((data) => console.log(data))
-            .catch((error) => console.error('Error deleting from wishlist:', error));
-            alert("Item removed from wishlist");
-        }
-    };
-    
-
 
     const removeFromCart = (itemId) => {
         setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
@@ -334,7 +375,6 @@ const ShopContextProvider = (props) => {
         }
     };
 
-
     const getTotalCartAmount = () => {
         let totalAmount = 0;
 
@@ -357,23 +397,37 @@ const ShopContextProvider = (props) => {
         return totalAmount;
     };
 
-
-    // const getTotalCartItems = () => {
-    //     let totalItem = 0;
-    //     for (const item in cartItems) {
-    //         if (cartItems[item] > 0) {
-    //             totalItem += cartItems[item];
-    //         }
-    //     }
-    //     return totalItem;
-    // };
-
     const getTotalCartItems = () => {
-        // The number of unique items is the number of keys in the cartItems object
-        return Object.keys(cartItems).filter(itemId => cartItems[itemId] > 0).length;
+        let totalItem = 0;
+        for (const item in cartItems) {
+            if (cartItems[item] > 0) {
+                totalItem += cartItems[item];
+            }
+        }
+        return totalItem;
     };
     // console.log(getTotalCartItems());  
 
+    const clearCart = async () => {
+        try {
+            const response = await fetch('http://localhost:4000/clearcart', {
+                method: 'POST',
+                headers: {
+                    'auth-token': localStorage.getItem('auth-token'),
+                    'Content-Type': 'application/json'
+                },
+            });
+            if (response.ok) {
+                setCartItems({}); // Update state to reflect an empty cart
+                localStorage.setItem('cartItems', JSON.stringify({})); // Clear cart items in localStorage
+                console.log('Cart successfully cleared.');
+            } else {
+                console.error('Error clearing cart');
+            }
+        } catch (error) {
+            console.error('Error clearing cart:', error);
+        }
+    };
 
     const contextValue = {
         allProduct,
@@ -387,9 +441,9 @@ const ShopContextProvider = (props) => {
         getTotalCartAmount,
         getTotalCartItems,
         addToWishlist,
+        clearCart,
         setWishlistItems // Ensure setWishlistItems is included here 
     };
-
 
     return (
         <ShopContext.Provider value={contextValue}>
@@ -399,3 +453,23 @@ const ShopContextProvider = (props) => {
 };
 
 export default ShopContextProvider;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

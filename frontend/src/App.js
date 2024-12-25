@@ -55,7 +55,8 @@ import kid_banner from './Components/Assets/banner_kids.png';
 import CartItems from './Components/CartItems/CartItems';
 import ProductDisplay from './Components/ProductDisplay/ProductDisplay';
 import ProfilePage from './Components/Profile/ProfilePage';
-import Wishlist from './Components/Wishlist/Wishlist'; // Import the Wishlist component
+import Wishlist from './Components/Wishlist/Wishlist';
+import CheckoutPage from './Components/CheckoutPage/CheckoutPage'; // Update the import path
 
 function App() {
   return (
@@ -77,6 +78,7 @@ function App() {
           <Route path="/product/:id" element={<ProductDisplay />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/checkout" element={<CheckoutPage />} /> {/* Add the CheckoutPage route */}
         </Routes>
         <Footer />
       </BrowserRouter>
@@ -85,5 +87,3 @@ function App() {
 }
 
 export default App;
-
-

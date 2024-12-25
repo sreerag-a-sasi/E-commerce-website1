@@ -436,7 +436,7 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import './Navbar.css';
 import logo from '../Assets/logo.png';
 import cart_icon from '../Assets/cart_icon.png';
-import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { ShopContext } from "../../Context/ShopContext";
 import nav_dropdown from '../Assets/nav_dropdown.png';
 import profileimage from '../Assets/profileimage.png';
@@ -449,18 +449,18 @@ const Navbar = () => {
     const [user, setUser] = useState(null);
     const [userImage, setUserImage] = useState(profileimage); // Default image
     const navigate = useNavigate(); // Initialize useNavigate
+    
 
     useEffect(() => {
         const fetchUserData = async () => {
             const authToken = localStorage.getItem('auth-token');
-            console.log("Auth token from localStorage:", authToken); // Log token fetched from localStorage
 
             if (authToken) {
                 try {
                     const response = await fetch('http://localhost:4000/user', {
                         method: 'GET',
                         headers: {
-                            'auth-token': authToken, // Send the auth-token directly
+                            'auth-token': authToken,
                             'Content-Type': 'application/json',
                         },
                     });
@@ -504,6 +504,11 @@ const Navbar = () => {
         navigate('/profile'); // Navigate to the profile page
     };
 
+    const handleLogout = () => {
+        localStorage.clear(); // Clear all local storage
+        window.location.replace('/');
+    };
+
     return (
         <div className="navbar">
             <div className="nav-logo">
@@ -521,20 +526,16 @@ const Navbar = () => {
                 {localStorage.getItem('auth-token')
                     ? (
                         <>
-                            {/* <button onClick={() => { localStorage.removeItem('auth-token'); window.location.replace('/') }}>Logout</button> */}
                             <img 
                                 src={logoutIcon} 
                                 alt="Logout" 
-                                onClick={() => { 
-                                    localStorage.removeItem('auth-token'); 
-                                    window.location.replace('/');
-                                }} 
+                                onClick={handleLogout} 
                                 className="logout"
                                 style={{ cursor: 'pointer' }} 
                             />
                             <Link style={{ textDecoration: 'none' }} to='/cart' onClick={handleCartClick}><img src={cart_icon} alt="Cart" /></Link>
                             <div className="nav-cart-count">{getTotalCartItems()}</div>
-                            <div className="profile-image" onClick={handleProfileClick}> {/* Add onClick to navigate */}
+                            <div className="profile-image" onClick={handleProfileClick}>
                                 <img src={userImage} alt="Profile" />
                             </div>
                         </>
@@ -553,7 +554,6 @@ const Navbar = () => {
 }
 
 export default Navbar;
-
 
 
 
