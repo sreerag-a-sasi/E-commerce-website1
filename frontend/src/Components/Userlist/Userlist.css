@@ -22,11 +22,13 @@
     border-radius: 50%;
     border: 2px solid #454545;
     object-fit: cover;
+    box-shadow: #454545ab 0px 0px 25px;
 }
 
 .userlist-remove-icon {
     cursor: pointer;
     margin: auto;
+    justify-content: flex-end;
 }
 
 .userlist-allusers {
@@ -34,6 +36,18 @@
     width: 100%;
     height: calc(100vh - 150px); /* Adjust height for responsive scrolling */
     padding: 20px;
+}
+.userlist-format-main{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+    margin: 20px 0px;
+}
+.user-details{
+    display: flex;
+    gap: 20px;
+    align-items: center;
 }
 
 @media (max-width: 800px) {
@@ -61,5 +75,19 @@
     .userlist-remove-icon {
         height: 20px;
         width: 20px;
+    }
+}
+@media (max-width: 500px) {
+    .user-details{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+@media (max-width: 350px){
+    .userlist-format-main{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
     }
 }

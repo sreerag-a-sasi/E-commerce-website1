@@ -151,68 +151,58 @@
 
 
 
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useCallback, useEffect } from 'react';
 
 export const ShopContext = createContext();
 
 const ShopContextProvider = (props) => {
     const [allProduct, setAllProduct] = useState([]);
-    const [cartItems, setCartItems] = useState(() => {
-        const savedCart = localStorage.getItem('cartItems');
-        return savedCart ? JSON.parse(savedCart) : {};
+    const [cartItems, setCartItems] = useState({});
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        phone: '',
+        image: '',
+        cartData: [],
+        Wishlist: [],
+        date: '',
+        user_type: '',
     });
-
-    const [wishlistItems, setWishlistItems] = useState(() => {
-        const savedWishlist = localStorage.getItem('wishlistItems');
-        const parsedWishlist = savedWishlist ? JSON.parse(savedWishlist) : {};
-        console.log('Wishlist Items:', parsedWishlist); // Added console.log to see wishlist items
-        return parsedWishlist;
-    });
+    const [wishlistItems, setWishlistItems] = useState({});
 
     useEffect(() => {
+        // Fetch all products
         fetch('http://localhost:4000/allproducts')
             .then((response) => response.json())
             .then((data) => {
-                console.log('Fetched Products:', data); // Log fetched products
+                console.log('Fetched Products:', data);
                 setAllProduct(data);
             })
             .catch((error) => console.error('Error fetching products:', error));
 
+        // Fetch cart data initially
         if (localStorage.getItem('auth-token')) {
-            fetch('http://localhost:4000/getcart', {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'auth-token': localStorage.getItem('auth-token'),
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({})
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    // console.log('Fetched Cart:', data);
-                    setCartItems(data);
-                    localStorage.setItem('cartItems', JSON.stringify(data)); // Update localStorage
-                })
-                .catch((error) => console.error('Error fetching cart:', error));
+            fetchCartData();
         }
 
+        // Fetch wishlist data
         if (localStorage.getItem('auth-token')) {
             fetch('http://localhost:4000/getwishlist', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
                     'auth-token': localStorage.getItem('auth-token'),
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({})
+                body: JSON.stringify({}),
             })
                 .then((response) => response.json())
                 .then((data) => {
                     console.log('Fetched Wishlist:', data);
                     if (data.success && Array.isArray(data.Wishlist)) {
                         const wishlistObj = {};
-                        data.Wishlist.forEach(item => {
+                        data.Wishlist.forEach((item) => {
                             wishlistObj[item] = true; // Use a boolean to mark items in the wishlist
                         });
                         setWishlistItems(wishlistObj);
@@ -224,62 +214,69 @@ const ShopContextProvider = (props) => {
         }
     }, []);
 
-    const deleteFromWishlist = (itemId) => {
-        // Update the local state to remove the item from the wishlist
-        const updatedWishlist = { ...wishlistItems };
-        delete updatedWishlist[itemId];
-        setWishlistItems(updatedWishlist);
-
-        // Update the local storage to remove the item from the wishlist
-        localStorage.setItem('wishlistItems', JSON.stringify(updatedWishlist));
-
-        // Send a request to the backend to update the wishlist
-        if (localStorage.getItem('auth-token')) {
-            fetch('http://localhost:4000/deletefromwishlist', {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'auth-token': localStorage.getItem('auth-token'),
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ itemId })
+    const fetchCartData = useCallback(() => {
+        fetch('http://localhost:4000/getcart', {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'auth-token': localStorage.getItem('auth-token'),
+                'Content-Type': 'application/json',
+            },
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
             })
-                .then((response) => response.json())
-                .then((data) => console.log(data))
-                .catch((error) => console.error('Error deleting from wishlist:', error));
-            alert("Item removed from wishlist");
+            .then((data) => {
+                if (data && data.cartData) {
+                    setCartItems(data.cartData);
+                } else {
+                    console.error('Invalid cart data received:', data);
+                }
+            })
+            .catch((error) => {
+                console.error('Error fetching cart data:', error);
+            });
+    }, []);
+
+    const login = async () => {
+        console.log("Login function executed", formData);
+        let responseData;
+        await fetch('http://localhost:4000/login', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/form-data',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        }).then((response) => response.json()).then((data) => responseData = data);
+
+        console.log("responseData:", responseData); // Log responseData
+        if (responseData) {
+            console.log("responseData.user:", responseData.user); // Log responseData.user
+            if (responseData.user) {
+                console.log("responseData.user.user_type:", responseData.user.user_type); // Log responseData.user.user_type
+            }
         }
-    };
 
-    const updateCartState = (updatedCart) => {
-        setCartItems(updatedCart);
-        localStorage.setItem('cartItems', JSON.stringify(updatedCart));
-    };
-
-    const addToCart = (itemId) => {
-        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
-        if (localStorage.getItem('auth-token')) {
-            fetch('http://localhost:4000/addtocart', {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json', // Correct content type
-                    'auth-token': localStorage.getItem('auth-token'),
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ "itemId": itemId })
-            })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then((data) => console.log(data))
-                .catch((error) => console.error('Fetch error:', error));
+        if (responseData.success) {
+            localStorage.setItem('auth-token', responseData.token);
+            alert('Login successful!');
+            if (responseData.user && (responseData.user.user_type === '676c07e68c1c6815439b181c' || responseData.user.user_type === '676c07f88c1c6815439b181e')) {
+                window.location.replace("/Admin/addproduct");
+            }
+            else {
+                window.location.replace("/");
+            }
+        } else {
+            alert(responseData.errors);
         }
     };
 
     const addToWishlist = (itemId) => {
+
         // Check if the item is already in the wishlist
         if (wishlistItems[itemId]) {
             console.log('Item is already in the wishlist');
@@ -315,12 +312,70 @@ const ShopContextProvider = (props) => {
         }
     };
 
+    const deleteFromWishlist = (itemId) => {
+        // Update the local state to remove the item from the wishlist
+        const updatedWishlist = { ...wishlistItems };
+        delete updatedWishlist[itemId];
+        setWishlistItems(updatedWishlist);
+
+        // Update the local storage to remove the item from the wishlist
+        localStorage.setItem('wishlistItems', JSON.stringify(updatedWishlist));
+
+        // Send a request to the backend to update the wishlist
+        if (localStorage.getItem('auth-token')) {
+            fetch('http://localhost:4000/deletefromwishlist', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'auth-token': localStorage.getItem('auth-token'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ itemId })
+            })
+                .then((response) => response.json())
+                .then((data) => console.log(data))
+                .catch((error) => console.error('Error deleting from wishlist:', error));
+            alert("Item removed from wishlist");
+        }
+    };
+
+    // const updateCartState = (updatedCart) => {
+    //     setCartItems(updatedCart);
+    //     localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+    // };
+
+    const addToCart = (itemId) => {
+        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
+        if (localStorage.getItem('auth-token')) {
+            fetch('http://localhost:4000/addtocart', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json', // Correct content type
+                    'auth-token': localStorage.getItem('auth-token'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ "itemId": itemId })
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then((data) => console.log(data))
+                .catch((error) => console.error('Fetch error:', error));
+        }
+    };
+
+
+
+
     const deleteFromCart = (itemId) => {
         const updatedCart = { ...cartItems };
         delete updatedCart[itemId];
         setCartItems(updatedCart);
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
-    
+
         if (localStorage.getItem('auth-token')) {
             fetch('http://localhost:4000/deletefromcart', {
                 method: 'POST',
@@ -337,43 +392,71 @@ const ShopContextProvider = (props) => {
             alert("Item removed from cart");
         }
     };
-    
+
 
     const removeFromCart = (itemId) => {
-        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
+        setCartItems((prev) => {
+            const updatedCart = { ...prev };
+            updatedCart[itemId] = (updatedCart[itemId] || 0) - 1;
+            return updatedCart;
+        });
         if (localStorage.getItem('auth-token')) {
             fetch('http://localhost:4000/removefromcart', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
                     'auth-token': localStorage.getItem('auth-token'),
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ "itemId": itemId })
+                body: JSON.stringify({ itemId }),
             })
-                .then((response) => response.json())
-                .then((data) => console.log(data));
-            // alert("item removed")
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to remove item from cart');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    console.log('Updated Cart after removal:', data);
+                    setCartItems(data.cartData); // Sync state with backend data
+                })
+                .catch((error) => console.error('Error:', error));
         }
     };
 
+
+
     const addFromCart = (itemId) => {
-        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
+        setCartItems((prev) => {
+            const updatedCart = { ...prev };
+            updatedCart[itemId] = (updatedCart[itemId] || 0) + 1;
+            return updatedCart;
+        });
+
         if (localStorage.getItem('auth-token')) {
-            fetch('http://localhost:4000/removefromcart', {
+            fetch('http://localhost:4000/addfromcart', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
                     'auth-token': localStorage.getItem('auth-token'),
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ "itemId": itemId })
+                body: JSON.stringify({ itemId }),
             })
-                .then((response) => response.json())
-                .then((data) => console.log(data));
-            // alert("item added")
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to add item to cart');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    setCartItems(data.cartData); // Sync state with updated cartData from backend
+                })
+                .catch((error) => console.error('Error:', error));
         }
     };
+
+
 
     const getTotalCartAmount = () => {
         let totalAmount = 0;
@@ -398,13 +481,8 @@ const ShopContextProvider = (props) => {
     };
 
     const getTotalCartItems = () => {
-        let totalItem = 0;
-        for (const item in cartItems) {
-            if (cartItems[item] > 0) {
-                totalItem += cartItems[item];
-            }
-        }
-        return totalItem;
+        // The number of unique items is the number of keys in the cartItems object
+        return Object.keys(cartItems).filter(itemId => cartItems[itemId] > 0).length;
     };
     // console.log(getTotalCartItems());  
 
@@ -430,9 +508,12 @@ const ShopContextProvider = (props) => {
     };
 
     const contextValue = {
+        login,
         allProduct,
         cartItems,
         addToCart,
+        formData,
+        fetchCartData,
         addFromCart,
         removeFromCart,
         deleteFromCart,

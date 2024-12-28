@@ -2,7 +2,7 @@
     box-sizing: border-box;
     width: 100%;
     max-width: 800px;
-    padding: 30px 50px;
+    padding: 50px 50px;
     margin: 20px 30px;
     border-radius: 6px;
     background: white;
@@ -12,6 +12,7 @@
     width: 100%;
     color: #7b7b7b;
     font-size: 16px;
+    margin-top: 20px;
 }
 .addproduct-itemfield input{
     box-sizing: border-box;
@@ -24,6 +25,20 @@
     color: #7b7b7b;
     font-family: 'poppins';
     font-size: 14px
+}
+.description{
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 150px;
+    height: auto;
+    border-radius: 4px;
+    padding-left: 15px;
+    border: 1px solid #c3c3c3;
+    outline:none;
+    color: #7b7b7b;
+    font-family: 'poppins';
+    font-size: 14px;
+    overflow-x: auto;
 }
 .addproduct-price{
     display: flex;
@@ -57,10 +72,26 @@
     font-size: 16px;
     font-weight: 500;
 }
+
 @media(max-width:800px){
     .add-product{
         width: auto;
         padding: 30px;
         margin: 20px;
+    }
+}
+@media(max-width:500px){
+    .addproduct-price{
+        display:flex ;
+        flex-direction: column;
+    }
+    .sidebar{
+        display: flex;
+        flex-direction: column;
+    }
+    .sidebar-item{
+        width: 80vw;
+        margin-left: auto;
+        margin-right: auto;
     }
 }

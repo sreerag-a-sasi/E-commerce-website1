@@ -92,7 +92,7 @@
     border-radius: 999px;
     width: 45px;
     aspect-ratio: 1/1;
-    margin-right: 20px;
+    /* margin-right: 20px; */
     border: 2px solid rgb(158, 154, 154);
 }
 .logout{
@@ -183,8 +183,13 @@
         transform: scale(0.8);
     }
     .nav-menu{
-        height: 70px;
+        margin-top: 10px;
+        height: auto;
         top: 50px;
+    }
+    .nav-menu-visible{
+        display: flex;
+        flex-direction: column;
     }
     .nav-login-cart{
         transform: scale(0.8);

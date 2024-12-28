@@ -29,6 +29,8 @@ const productSchema = new Schema({
         type: String,
         required: true,
     },
+    added_by: String,
+    seller: String,
 });
 
 const Product = mongoose.model('Product', productSchema);

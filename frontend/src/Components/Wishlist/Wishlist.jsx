@@ -48,7 +48,7 @@ const Wishlist = () => {
                         </div>
                     );
                 }
-                console.log(`Product with id: ${e.id} not in wishlist`);
+                // console.log(`Product with id: ${e.id} in wishlist`);
                 return null;
             })}
         </div>

@@ -1,7 +1,7 @@
 {
   "development": {
     "database": {
-      "url": "mongodb://localhost/mongoose_dev",
+      "url": "mongodb+srv://sreerag-a-sasi:killer027on@cluster0.zw9vy.mongodb.net/e-commerce",
       "options": {
         "useNewUrlParser": true
       }
@@ -9,7 +9,7 @@
   },
   "test": {
     "database": {
-      "url": "mongodb://localhost/mongoose_test",
+      "url": "mongodb+srv://sreerag-a-sasi:killer027on@cluster0.zw9vy.mongodb.net/e-commerce",
       "options": {
         "useNewUrlParser": true
       }
@@ -17,14 +17,10 @@
   },
   "production": {
     "database": {
-      "protocol": "mongodb",
-      "username": "root",
-      "password": "password",
-      "name": "database_production",
-      "host": "localhost",
-      "port": "",
+      "url": "mongodb+srv://sreerag-a-sasi:killer027on@cluster0.zw9vy.mongodb.net/e-commerce",
       "options": {
-        "useNewUrlParser": true
+        "useNewUrlParser": true,
+        "dbName": "database_production"
       }
     }
   }

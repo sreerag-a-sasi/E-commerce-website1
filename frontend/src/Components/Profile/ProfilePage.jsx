@@ -91,6 +91,7 @@ const ProfilePage = () => {
         email: '',
         password: '',
         phone: '',
+        user_type: '',
     });
     const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
     const navigate = useNavigate(); // Initialize useNavigate
@@ -98,7 +99,7 @@ const ProfilePage = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             const authToken = localStorage.getItem('auth-token');
-            
+
             if (authToken) {
                 try {
                     const response = await fetch('http://localhost:4000/user', {
@@ -144,8 +145,8 @@ const ProfilePage = () => {
     const handleBackClick = () => {
         navigate(-1); // Navigate to the previous page
     };
-    const handlewishlist = () => {
-        navigate('/wishlist'); // Navigate to the home page
+    const handleDashboard = () => {
+        navigate('/Admin/addproduct'); // Navigate to the home page
     };
 
     return (
@@ -203,9 +204,12 @@ const ProfilePage = () => {
                     <button type="button" onClick={handleHomeClick} className="home-button">
                         Home
                     </button>
-                    <button type="button" onClick={handlewishlist} className="home-button">
-                        wishlist
-                    </button>
+                    {(profile.user_type === '676c07e68c1c6815439b181c' || profile.user_type === '676c07f88c1c6815439b181e') && ( 
+                        <button type="button" onClick={handleDashboard} className="home-button">
+                            Dashboard
+                        </button>
+                    )}
+
                     <button type="button" onClick={handleBackClick} className="back-button">
                         Back
                     </button>

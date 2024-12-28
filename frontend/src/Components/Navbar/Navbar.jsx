@@ -440,7 +440,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ShopContext } from "../../Context/ShopContext";
 import nav_dropdown from '../Assets/nav_dropdown.png';
 import profileimage from '../Assets/profileimage.png';
-import logoutIcon from '../Assets/logout.png'
+import logoutIcon from '../Assets/logout.png';
 
 const Navbar = () => {
     const [menu, setMenu] = useState("shop");
@@ -449,7 +449,6 @@ const Navbar = () => {
     const [user, setUser] = useState(null);
     const [userImage, setUserImage] = useState(profileimage); // Default image
     const navigate = useNavigate(); // Initialize useNavigate
-    
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -464,7 +463,7 @@ const Navbar = () => {
                             'Content-Type': 'application/json',
                         },
                     });
-                    console.log("Response headers:", response.headers); // Log response headers
+                    //console.log("Response headers:", response.headers); // Log response headers
 
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -474,9 +473,9 @@ const Navbar = () => {
 
                     if (data && data.user && data.user.image) {
                         setUser(data.user); // Set the user object
-                        console.log("User data in the navbar:", data.user);
+                       // console.log("User data in the navbar:", data.user);
                         setUserImage(data.user.image); // Set the user image
-                        console.log("User image:", data.user.image);
+                       // console.log("User image:", data.user.image);
                     } else {
                         console.error('User data fetch unsuccessful: No user image found');
                     }
@@ -521,6 +520,9 @@ const Navbar = () => {
                 <li onClick={() => { setMenu("mens") }}><Link style={{ textDecoration: 'none' }} to='/mens'>Men</Link>{menu === "mens" ? <hr /> : <></>}</li>
                 <li onClick={() => { setMenu("womens") }}><Link style={{ textDecoration: 'none' }} to='/womens'>Women</Link>{menu === "womens" ? <hr /> : <></>}</li>
                 <li onClick={() => { setMenu("kids") }}><Link style={{ textDecoration: 'none' }} to='/kids'>Kids</Link>{menu === "kids" ? <hr /> : <></>}</li>
+                {localStorage.getItem('auth-token') && (
+                    <li onClick={() => { setMenu("wishlist") }}><Link style={{ textDecoration: 'none' }} to='/wishlist'>Wishlist</Link></li>
+                )}
             </ul>
             <div className="nav-login-cart">
                 {localStorage.getItem('auth-token')
@@ -554,7 +556,6 @@ const Navbar = () => {
 }
 
 export default Navbar;
-
 
 
 

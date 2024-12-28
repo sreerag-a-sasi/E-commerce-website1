@@ -320,8 +320,20 @@ mongoose.connect("mongodb+srv://sreerag-a-sasi:killer027on@cluster0.zw9vy.mongod
     .catch((err) => console.error("MongoDB connection error:", err));
 
 // Import models
-const Users = require('./models/User');
-const Product = require('./models/Product');
+const Users = require('./db/models/User');
+const Product = require('./db/models/Product');
+const User_type = require('./db/models/user_types'); 
+
+app.get('/usertypes', async (req, res) => {
+    try {
+        const userTypes = await User_type.find({});
+        res.json(userTypes);
+    } catch (error) {
+        console.error("Error fetching user types:", error);
+        res.status(500).json({ message: "Error fetching user types" });
+    }
+});
+
 
 // Home route
 app.get("/", (req, res) => {
@@ -380,15 +392,78 @@ app.post("/upload", uploadProduct.array('product_images', 10), (req, res) => {
 });
 
 
+// app.post('/addproduct', async (req, res) => {
+//     let products = await Product.find({});
+//     let id;
+//     if (products.length > 0) {
+//         let last_product_array = products.slice(-1);
+//         let last_product = last_product_array[0];
+//         id = last_product.id + 1;
+//     }
+//     else {
+//         id = 1;
+//     }
+//     const product = new Product({
+//         id: id,
+//         name: req.body.name,
+//         image: req.body.image,
+//         category: req.body.category,
+//         new_price: req.body.new_price,
+//         old_price: req.body.old_price,
+//         available: req.body.available,
+//         description: req.body.description,
+//     });
+//     console.log(product);
+//     await product.save();
+//     console.log("Saved");
+//     res.json({
+//         success: true,
+//         name: req.body.name,
+//     });
+
+// });
+
+// app.post('/addproduct', async (req, res) => {
+//     let products = await Product.find({});
+//     let id;
+//     if (products.length > 0) {
+//         let last_product_array = products.slice(-1);
+//         let last_product = last_product_array[0];
+//         id = last_product.id + 1;
+//     } else {
+//         id = 1;
+//     }
+//     const product = new Product({
+//         id: id,
+//         name: req.body.name,
+//         image: req.body.image,
+//         category: req.body.category,
+//         new_price: req.body.new_price,
+//         old_price: req.body.old_price,
+//         available: req.body.available,
+//         description: req.body.description,
+//         added_by: req.body.added_by, // Store user ID
+//         seller: req.body.seller, // Store seller name
+//     });
+//     console.log(product);
+//     await product.save();
+//     console.log("Saved");
+//     res.json({
+//         success: true,
+//         name: req.body.name,
+//     });
+// });
+
+
 app.post('/addproduct', async (req, res) => {
+    console.log(req.body); // Log for verification
     let products = await Product.find({});
     let id;
     if (products.length > 0) {
         let last_product_array = products.slice(-1);
         let last_product = last_product_array[0];
         id = last_product.id + 1;
-    }
-    else {
+    } else {
         id = 1;
     }
     const product = new Product({
@@ -400,6 +475,8 @@ app.post('/addproduct', async (req, res) => {
         old_price: req.body.old_price,
         available: req.body.available,
         description: req.body.description,
+        added_by: req.body.added_by,
+        seller: req.body.seller,
     });
     console.log(product);
     await product.save();
@@ -408,8 +485,10 @@ app.post('/addproduct', async (req, res) => {
         success: true,
         name: req.body.name,
     });
-
 });
+
+
+
 
 //creating api for deleting products
 
@@ -464,8 +543,7 @@ app.post('/signup', async (req, res) => {
             password: hashedPassword,
             phone: req.body.phone,
             image: req.body.image,
-            cartData: cart,
-            Wishlist: wishlist,
+            user_type: req.body.user_type
         });
 
         // Save user to database
@@ -481,7 +559,6 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-
 app.post('/login', async (req, res) => {
     try {
         let user = await Users.findOne({ email: req.body.email });
@@ -489,25 +566,21 @@ app.post('/login', async (req, res) => {
             return res.status(400).json({ success: false, errors: "Wrong Email Id" });
         }
 
-        const passCompare = bcrypt.compare(req.body.password, user.password);
+        const passCompare = await bcrypt.compare(req.body.password, user.password); // Add await here
         if (!passCompare) {
             return res.status(400).json({ success: false, errors: "Wrong password" });
         }
 
-        const data = {
-            user: {
-                id: user.id
-            }
-        };
-
-        // let token = jwt.sign({ user_id: user._id }, process.env.PRIVATE_KEY, { expiresIn: "10d" }); // Optionally, add expiration
         const token = jwt.sign({ user_id: user._id }, secretKey, { expiresIn: "10d" });
-        res.json({ success: true, token });
+
+        // Include user details in the response
+        res.json({ success: true, token, user });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, errors: "Internal Server Error" });
     }
 });
+
 
 
 app.get('/allproducts', async (req, res) => {
@@ -516,11 +589,39 @@ app.get('/allproducts', async (req, res) => {
     res.send(product);
 });
 
-// app.get('/userlist', async (req, res) => {
-//     let users = await Users.find({});
-//     console.log("All users Fetched (from index.js backend)");
-//     res.send(users);
-// });
+
+
+// Example: Query to fetch all users with populated user_type
+app.get('/allusers', async (req, res) => {
+    try {
+        const users = await Users.find().populate('user_type');  // Populate 'user_type'
+        console.log('Fetched Users:', users);
+        res.json(users);  // Send the users to the front-end
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching users', error: err });
+    }
+});
+
+
+
+app.post('/removeuser', async (req, res) => {
+    try {
+        const { id } = req.body;
+        const result = await Users.deleteOne({ _id: id });
+
+        if (result.deletedCount > 0) {
+            console.log(`User with ID ${id} removed successfully`);
+            res.status(200).send({ success: true, message: "User removed successfully" });
+        } else {
+            console.log(`User with ID ${id} not found`);
+            res.status(404).send({ success: false, message: "User not found" });
+        }
+    } catch (error) {
+        console.error("Error removing user:", error);
+        res.status(500).send({ success: false, message: "Error removing user" });
+    }
+});
+
 
 app.get('/newcollections', async (req, res) => {
     try {
@@ -568,33 +669,18 @@ app.get('/relatedproducts', async (req, res) => {
 
 
 // Cart Endpoints
-app.post('/getcart', fetchUser, async (req, res) => {
+app.get('/getcart', fetchUser, async (req, res) => {
     try {
-        console.log("Fetching cart data for user:", req.user.user_id);
+        const userData = await Users.findById(req.user.user_id);
 
-        // Fetch user data from the database
-        const userData = await Users.findOne({ _id: req.user.user_id });
-
-        // Check if the user exists
         if (!userData) {
-            console.error("User not found");
-            return res.status(404).json({ success: false, errors: "User not found" });
+            return res.status(404).json({ message: "User not found" });
         }
 
-        // Log the fetched user data
-        //console.log("Fetched user data for :", userData.name, " email : ", userData.email);
-
-        // Check if the cartData exists and is not empty
-        if (!userData.cartData || userData.cartData.length === 0) {
-            console.log("Cart is empty for user:", req.user.user_id);
-            return res.status(200).json({ success: true, cartData: [] });
-        }
-
-        // Send the cart data
-        res.json(userData.cartData);
+        res.status(200).json({ cartData: userData.cartData });
     } catch (error) {
-        console.error("Error retrieving cart data:", error);
-        res.status(500).json({ success: false, errors: "Internal Server Error" });
+        console.error("Error fetching cart data:", error);
+        res.status(500).json({ message: "Error fetching cart data" });
     }
 });
 
@@ -693,10 +779,6 @@ app.post('/checkwishlist', fetchUser, async (req, res) => {
     }
 });
 
-
-
-
-
 app.post('/addtowishlist', fetchUser, async (req, res) => {
     try {
         const { itemId } = req.body;
@@ -756,45 +838,90 @@ app.post('/deletefromwishlist', fetchUser, async (req, res) => {
 app.post('/removefromcart', fetchUser, async (req, res) => {
     try {
         const { itemId } = req.body;
+
+        if (!itemId) {
+            return res.status(400).json({ message: "Invalid item ID" });
+        }
+
         console.log("Attempting to remove item from cart:", itemId);
 
-        const userData = await Users.findOne({ _id: req.user.user_id });
-        if (userData.cartData && userData.cartData[itemId] > 0) {
-            userData.cartData[itemId] -= 1;
-            if (userData.cartData[itemId] === 0) delete userData.cartData[itemId]; // Remove if quantity becomes zero
-            await userData.save();
-            console.log("Item successfully removed from cart");
-            res.status(200).send("Item removed from the cart");
-        } else {
-            console.error("Item not found in cart or quantity is already zero");
-            res.status(400).send({ errors: "Item not found in cart or quantity is already zero" });
+        // Use `findByIdAndUpdate` for atomic update and save
+        const updatedUser = await Users.findByIdAndUpdate(
+            req.user.user_id,
+            {
+                $inc: { [`cartData.${itemId}`]: -1 }, // Decrement the item quantity
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
         }
+
+        // Remove the item from `cartData` if its quantity becomes 0
+        if (updatedUser.cartData[itemId] <= 0) {
+            delete updatedUser.cartData[itemId];
+
+            // Save the changes after deletion
+            await updatedUser.save();
+        }
+
+        console.log("Updated cartData:", updatedUser.cartData);
+
+        res.status(200).json({
+            message: "Item removed from the cart",
+            cartData: updatedUser.cartData,
+        });
     } catch (error) {
-        console.error("Error removing item from cart:", error);
-        res.status(500).send("Error removing item from the cart");
+        console.error("Error removing item from the cart:", error);
+        res.status(500).json({
+            message: "Error removing item from the cart",
+            error: error.message,
+        });
     }
 });
+
+
+
 
 app.post('/addfromcart', fetchUser, async (req, res) => {
     try {
         const { itemId } = req.body;
-        console.log("Incrementing quantity of item in cart:", itemId);
 
-        const userData = await Users.findOne({ _id: req.user.user_id });
-        if (userData.cartData && userData.cartData[itemId]) {
-            userData.cartData[itemId] += 1;
-            await userData.save();
-            console.log("Item quantity successfully incremented in cart");
-            res.status(200).send("Item quantity increased in the cart");
-        } else {
-            console.error("Item not found in cart");
-            res.status(400).send({ errors: "Item not found in cart" });
+        if (!itemId) {
+            return res.status(400).json({ message: "Invalid item ID" });
         }
+
+        console.log("Attempting to add item to cart:", itemId);
+
+        // Use `findByIdAndUpdate` for atomic update and save
+        const updatedUser = await Users.findByIdAndUpdate(
+            req.user.user_id,
+            { $inc: { [`cartData.${itemId}`]: 1 } }, // Increment the item quantity
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        console.log("Updated cartData:", updatedUser.cartData);
+
+        res.status(200).json({
+            message: "Item added to the cart",
+            cartData: updatedUser.cartData,
+        });
     } catch (error) {
-        console.error("Error incrementing item quantity in cart:", error);
-        res.status(500).send("Error incrementing item quantity in the cart");
+        console.error("Error adding item to the cart:", error);
+        res.status(500).json({
+            message: "Error adding item to the cart",
+            error: error.message,
+        });
     }
 });
+
+
+
 
 app.post('/deletefromcart', fetchUser, async (req, res) => {
     try {
