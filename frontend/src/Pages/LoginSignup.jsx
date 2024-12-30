@@ -256,18 +256,51 @@ const LoginSignup = () => {
         return response.json();
     };
 
+    // const login = async () => {
+    //     console.log("Login function executed", formData);
+    //     let responseData;
+    //     await fetch('http://localhost:4000/login', {
+    //         method: 'POST',
+    //         headers: {
+    //             Accept: 'application/form-data',
+    //             'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify(formData),
+    //     }).then((response) => response.json()).then((data) => responseData = data);
+
+    //     console.log("responseData:", responseData); // Log responseData
+    //     if (responseData) {
+    //         console.log("responseData.user:", responseData.user); // Log responseData.user
+    //         if (responseData.user) {
+    //             console.log("responseData.user.user_type:", responseData.user.user_type); // Log responseData.user.user_type
+    //         }
+    //     }
+
+    //     if (responseData.success) {
+    //         localStorage.setItem('auth-token', responseData.token);
+    //         alert('Login successful!');
+    //         if (responseData.user && (responseData.user.user_type === '676c07e68c1c6815439b181c' || responseData.user.user_type === '676c07f88c1c6815439b181e')) {
+    //             window.location.replace("/Admin/addproduct");
+    //         } else {
+    //             window.location.replace("/");
+    //         }
+    //     } else {
+    //         alert(responseData.errors);
+    //     }
+    // };
+
     const login = async () => {
         console.log("Login function executed", formData);
         let responseData;
         await fetch('http://localhost:4000/login', {
             method: 'POST',
             headers: {
-                Accept: 'application/form-data',
+                Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(formData),
         }).then((response) => response.json()).then((data) => responseData = data);
-
+    
         console.log("responseData:", responseData); // Log responseData
         if (responseData) {
             console.log("responseData.user:", responseData.user); // Log responseData.user
@@ -275,19 +308,26 @@ const LoginSignup = () => {
                 console.log("responseData.user.user_type:", responseData.user.user_type); // Log responseData.user.user_type
             }
         }
-
+    
         if (responseData.success) {
             localStorage.setItem('auth-token', responseData.token);
             alert('Login successful!');
-            if (responseData.user && (responseData.user.user_type === '676c07e68c1c6815439b181c' || responseData.user.user_type === '676c07f88c1c6815439b181e')) {
+            if (responseData.user && 
+                (responseData.user.user_type === '676c07e68c1c6815439b181c' || 
+                responseData.user.user_type === '676c07f88c1c6815439b181e')) {
                 window.location.replace("/Admin/addproduct");
             } else {
                 window.location.replace("/");
             }
+        } else if (responseData.errors === "You are blocked by Admin") {
+            alert("You are blocked by Admin");
         } else {
             alert(responseData.errors);
         }
     };
+    
+
+
 
     const signup = async () => {
         console.log("Signup function executed", formData);

@@ -28,7 +28,7 @@ const Wishlist = () => {
             </div>
             <hr />
             {allProduct.map((e) => {
-                console.log(`Checking product with id: ${e.id}`);
+                //console.log(`Checking product with id: ${e.id}`);
                 if (wishlistItems[e.id]) {
                     console.log(`Displaying product: ${e.name}`);
                     return (

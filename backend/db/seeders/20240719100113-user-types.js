@@ -1,6 +1,6 @@
 'use strict';
 
-const UserType = require('../models/UserType'); // Adjust the path according to your project structure
+const UserType = require('../models/user_types'); // Adjust the path according to your project structure
 
 module.exports = {
   up: async (models, mongoose) => {

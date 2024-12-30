@@ -20,10 +20,44 @@ const userSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User_type", 
     },
+    blocked: { // New field to track block status
+        type: Boolean,
+        default: false
+    },
 });
 
 const Users = mongoose.model('Users', userSchema);
 module.exports = Users;
+
+
+
+
+// const mongoose = require('mongoose');
+// const { Schema } = mongoose;
+
+// const userSchema = new Schema({
+//     name: String,
+//     email: {
+//         type: String,
+//         unique: true,
+//     },
+//     password: String,
+//     phone: String,
+//     image: String,
+//     cartData: Object,
+//     Wishlist: Object,
+//     date: {
+//         type: Date,
+//         default: Date.now,
+//     },
+//     user_type: {
+//         type: mongoose.Schema.Types.ObjectId,
+//         ref: "User_type", 
+//     },
+// });
+
+// const Users = mongoose.model('Users', userSchema);
+// module.exports = Users;
 
 
 

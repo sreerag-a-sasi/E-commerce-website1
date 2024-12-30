@@ -231,9 +231,11 @@ const ShopContextProvider = (props) => {
             })
             .then((data) => {
                 if (data && data.cartData) {
+                    console.log("data:",data, "cartdata",data.cartData);
+                    
                     setCartItems(data.cartData);
                 } else {
-                    console.error('Invalid cart data received:', data);
+                    console.log('Invalid cart data or cart is empty:', data);
                 }
             })
             .catch((error) => {
@@ -241,39 +243,41 @@ const ShopContextProvider = (props) => {
             });
     }, []);
 
-    const login = async () => {
-        console.log("Login function executed", formData);
-        let responseData;
-        await fetch('http://localhost:4000/login', {
-            method: 'POST',
-            headers: {
-                Accept: 'application/form-data',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData),
-        }).then((response) => response.json()).then((data) => responseData = data);
+    // const login = async () => {
+    //     console.log("Login function executed", formData);
+    //     let responseData;
+    //     await fetch('http://localhost:4000/login', {
+    //         method: 'POST',
+    //         headers: {
+    //             Accept: 'application/form-data',
+    //             'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify(formData),
+    //     }).then((response) => response.json()).then((data) => responseData = data);
 
-        console.log("responseData:", responseData); // Log responseData
-        if (responseData) {
-            console.log("responseData.user:", responseData.user); // Log responseData.user
-            if (responseData.user) {
-                console.log("responseData.user.user_type:", responseData.user.user_type); // Log responseData.user.user_type
-            }
-        }
+    //     console.log("responseData:", responseData); // Log responseData
+    //     if (responseData) {
+    //         console.log("responseData.user:", responseData.user); // Log responseData.user
+    //         if (responseData.user) {
+    //             console.log("responseData.user.user_type:", responseData.user.user_type); // Log responseData.user.user_type
+    //         }
+    //     }
 
-        if (responseData.success) {
-            localStorage.setItem('auth-token', responseData.token);
-            alert('Login successful!');
-            if (responseData.user && (responseData.user.user_type === '676c07e68c1c6815439b181c' || responseData.user.user_type === '676c07f88c1c6815439b181e')) {
-                window.location.replace("/Admin/addproduct");
-            }
-            else {
-                window.location.replace("/");
-            }
-        } else {
-            alert(responseData.errors);
-        }
-    };
+    //     if (responseData.success) {
+    //         localStorage.setItem('auth-token', responseData.token);
+    //         alert('Login successful!');
+    //         if (responseData.user && (responseData.user.user_type === '676c07e68c1c6815439b181c' || responseData.user.user_type === '676c07f88c1c6815439b181e')) {
+    //             window.location.replace("/Admin/addproduct");
+    //         }
+    //         else {
+    //             window.location.replace("/");
+    //         }
+    //     } else {
+    //         alert(responseData.errors);
+    //     }
+    // };
+
+
 
     const addToWishlist = (itemId) => {
 
@@ -367,7 +371,41 @@ const ShopContextProvider = (props) => {
         }
     };
 
-
+    const login = async () => {
+        console.log("Login function executed", formData);
+        let responseData;
+        await fetch('http://localhost:4000/login', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        }).then((response) => response.json()).then((data) => responseData = data);
+    
+        console.log("responseData:", responseData); // Log responseData
+        if (responseData) {
+            console.log("responseData.user:", responseData.user); // Log responseData.user
+            if (responseData.user) {
+                console.log("responseData.user.user_type:", responseData.user.user_type); // Log responseData.user.user_type
+            }
+        }
+    
+        if (responseData.success) {
+            localStorage.setItem('auth-token', responseData.token);
+            alert('Login successful!');
+            if (responseData.user && 
+                (responseData.user.user_type === '676c07e68c1c6815439b181c' || 
+                responseData.user.user_type === '676c07f88c1c6815439b181e')) {
+                window.location.replace("/Admin/addproduct");
+            } else {
+                window.location.replace("/");
+            }
+        } else {
+            alert(responseData.errors); // Handle blocked state by showing error
+        }
+    };
+    
 
 
     const deleteFromCart = (itemId) => {

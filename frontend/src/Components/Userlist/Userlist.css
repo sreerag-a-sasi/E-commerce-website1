@@ -49,6 +49,34 @@
     gap: 20px;
     align-items: center;
 }
+.user-action{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.remove-user{
+align-items: center;
+}
+.remove-user img{
+    width: 30px;
+    height: 30px;
+}
+.remove-user img:hover{
+    scale: 1.2;
+}
+.block-unblock button{
+    border-radius: 99px;
+    border: 0px;
+    outline: none;
+    background-color: #ccc;
+    padding: 5px 15px;
+    cursor: pointer;
+}
+.block-unblock button:hover{
+    scale:1.2;
+    background-color: #454545;
+    color: antiquewhite;
+}
 
 @media (max-width: 800px) {
     .user-list {
@@ -82,6 +110,12 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
+    }
+    .userlist-format-main{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
     }
 }
 @media (max-width: 350px){

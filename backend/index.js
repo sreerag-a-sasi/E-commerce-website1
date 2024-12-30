@@ -559,6 +559,28 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+// app.post('/login', async (req, res) => {
+//     try {
+//         let user = await Users.findOne({ email: req.body.email });
+//         if (!user) {
+//             return res.status(400).json({ success: false, errors: "Wrong Email Id" });
+//         }
+
+//         const passCompare = await bcrypt.compare(req.body.password, user.password); // Add await here
+//         if (!passCompare) {
+//             return res.status(400).json({ success: false, errors: "Wrong password" });
+//         }
+
+//         const token = jwt.sign({ user_id: user._id }, secretKey, { expiresIn: "10d" });
+
+//         // Include user details in the response
+//         res.json({ success: true, token, user });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ success: false, errors: "Internal Server Error" });
+//     }
+// });
+
 app.post('/login', async (req, res) => {
     try {
         let user = await Users.findOne({ email: req.body.email });
@@ -566,9 +588,14 @@ app.post('/login', async (req, res) => {
             return res.status(400).json({ success: false, errors: "Wrong Email Id" });
         }
 
-        const passCompare = await bcrypt.compare(req.body.password, user.password); // Add await here
+        const passCompare = await bcrypt.compare(req.body.password, user.password);
         if (!passCompare) {
             return res.status(400).json({ success: false, errors: "Wrong password" });
+        }
+
+        // Check if user is blocked
+        if (user.blocked) {
+            return res.status(403).json({ success: false, errors: "You are blocked by Admin" });
         }
 
         const token = jwt.sign({ user_id: user._id }, secretKey, { expiresIn: "10d" });
@@ -582,14 +609,72 @@ app.post('/login', async (req, res) => {
 });
 
 
+app.post('/toggleblockuser', async (req, res) => {
+    try {
+        const { id, blocked } = req.body;
+        let user = await Users.findById(id);
+        if (user) {
+            user.blocked = blocked;
+            await user.save();
+            res.json({ success: true, message: `User ${blocked ? 'blocked' : 'unblocked'} successfully!` });
+        } else {
+            res.status(404).json({ success: false, message: 'User not found' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// Endpoint to update user details
+app.post('/updateuser', async (req, res) => {
+    try {
+        const token = req.header('auth-token');
+        if (!token) {
+            return res.status(401).json({ success: false, message: "Access Denied" });
+        }
+
+        let userId;
+        try {
+            const verified = jwt.verify(token, secretKey);
+            userId = verified.user_id;
+        } catch (error) {
+            return res.status(400).json({ success: false, message: "Invalid Token" });
+        }
+
+        const { name, password, phone, image } = req.body;
+        
+        // Hash the password if it exists in the request
+        let hashedPassword;
+        if (password) {
+            hashedPassword = await bcrypt.hash(password, 10);
+        }
+
+        // Find and update the user details
+        const user = await Users.findById(userId);
+        if (user) {
+            user.name = name || user.name;
+            user.password = hashedPassword || user.password;
+            user.phone = phone || user.phone;
+            user.image = image || user.image;
+            await user.save();
+
+            res.json({ success: true, message: "Profile updated successfully", user });
+        } else {
+            res.status(404).json({ success: false, message: "User not found" });
+        }
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+})
+
 
 app.get('/allproducts', async (req, res) => {
     let product = await Product.find({});
     console.log("All Products Fetched (from index.js backend)");
     res.send(product);
 });
-
-
 
 // Example: Query to fetch all users with populated user_type
 app.get('/allusers', async (req, res) => {
@@ -602,11 +687,35 @@ app.get('/allusers', async (req, res) => {
     }
 });
 
+// app.post('/removeuser', async (req, res) => {
+//     try {
+//         const { id } = req.body;
+//         const result = await Users.deleteOne({ _id: id });
 
+//         if (result.deletedCount > 0) {
+//             console.log(`User with ID ${id} removed successfully`);
+//             res.status(200).send({ success: true, message: "User removed successfully" });
+//         } else {
+//             console.log(`User with ID ${id} not found`);
+//             res.status(404).send({ success: false, message: "User not found" });
+//         }
+//     } catch (error) {
+//         console.error("Error removing user:", error);
+//         res.status(500).send({ success: false, message: "Error removing user" });
+//     }
+// });
 
 app.post('/removeuser', async (req, res) => {
     try {
         const { id } = req.body;
+        
+        // Check if the user is an admin
+        const user = await Users.findById(id);
+        if (user.user_type._id === '676c07e68c1c6815439b181c') {
+            console.log(`Attempt to remove admin user ID ${id} blocked`);
+            return res.status(403).send({ success: false, message: "Cannot delete admin user" });
+        }
+
         const result = await Users.deleteOne({ _id: id });
 
         if (result.deletedCount > 0) {
