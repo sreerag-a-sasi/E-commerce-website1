@@ -330,7 +330,7 @@ const LoginSignup = () => {
 
 
     const signup = async () => {
-        console.log("Signup function executed", formData);
+        //console.log("Signup function executed", formData);
 
         if (!image) {
             alert("No image selected. Proceeding without image.");

@@ -299,6 +299,8 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 const fs = require('fs');
+const new_user_template = require("./utils/New_user").newuser;
+const sendEmail = require("./utils/send-email").sendEmail;
 
 // Load environment variables
 dotenv.config();
@@ -322,7 +324,7 @@ mongoose.connect("mongodb+srv://sreerag-a-sasi:killer027on@cluster0.zw9vy.mongod
 // Import models
 const Users = require('./db/models/User');
 const Product = require('./db/models/Product');
-const User_type = require('./db/models/user_types'); 
+const User_type = require('./db/models/user_types');
 
 app.get('/usertypes', async (req, res) => {
     try {
@@ -548,11 +550,16 @@ app.post('/signup', async (req, res) => {
 
         // Save user to database
         await user.save();
-
         // Generate JWT token
         const token = jwt.sign({ user_id: user._id }, secretKey, { expiresIn: "10d" });
 
         res.json({ success: true, token });
+
+        if (user) {
+            console.log("New user created:", user);
+            let email_template = await new_user_template(user.name, user.email, req.body.password);
+            await sendEmail(user.email, "New user created...", email_template);
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, errors: "Internal Server Error" });
@@ -643,7 +650,7 @@ app.post('/updateuser', async (req, res) => {
         }
 
         const { name, password, phone, image } = req.body;
-        
+
         // Hash the password if it exists in the request
         let hashedPassword;
         if (password) {
@@ -708,7 +715,7 @@ app.get('/allusers', async (req, res) => {
 app.post('/removeuser', async (req, res) => {
     try {
         const { id } = req.body;
-        
+
         // Check if the user is an admin
         const user = await Users.findById(id);
         if (user.user_type._id === '676c07e68c1c6815439b181c') {
