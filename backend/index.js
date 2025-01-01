@@ -304,6 +304,7 @@ const blocked_user_template = require("./utils/Blocked_user").blockeduser;
 const Unblocked_user_template = require("./utils/Unblocked_user").Unblockeduser;
 const blocked_product_template = require("./utils/Blocked_product").blockedproduct;
 const unblocked_product_template = require("./utils/Unblocked_product").Unblockedproduct;
+const outofstock_product_template = require("./utils/Outofstock_product").outofstockproducts;
 const sendEmail = require("./utils/send-email").sendEmail;
 
 // Load environment variables
@@ -460,7 +461,6 @@ app.post("/upload", uploadProduct.array('product_images', 10), (req, res) => {
 //     });
 // });
 
-
 app.post('/addproduct', async (req, res) => {
     console.log(req.body); // Log for verification
     let products = await Product.find({});
@@ -493,11 +493,7 @@ app.post('/addproduct', async (req, res) => {
     });
 });
 
-
-
-
 //creating api for deleting products
-
 app.post('/removeproduct', async (req, res) => {
     await Product.findOneAndDelete({ id: req.body.id });
     let id = req.body.id;
@@ -657,7 +653,7 @@ app.post('/toggleblockproduct', async (req, res) => {
         let userId = product.added_by;
 
         const seller = await Users.findById(userId);
-        console.log("user from block product:", seller);
+        //console.log("user from block product:", seller);
 
 
         if (product) {
@@ -686,8 +682,6 @@ app.post('/toggleblockproduct', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
-
-
 
 // Endpoint to update user details
 app.post('/updateuser', async (req, res) => {
@@ -732,20 +726,15 @@ app.post('/updateuser', async (req, res) => {
     }
 })
 
-
 // app.get('/allproducts', async (req, res) => {
 //     let product = await Product.find({});
 //     console.log("All Products Fetched (from index.js backend)");
 //     res.send(product);
 // });
 
-
-
 app.get('/allproducts', async (req, res) => {
     try {
         const token = req.header('auth-token');
-        //console.log("token from allproducts:", token);
-
         if (!token) {
             return res.status(401).json({ success: false, message: 'Access Denied' });
         }
@@ -758,31 +747,46 @@ app.get('/allproducts', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid Token' });
         }
 
-        // Fetch the user's type
         const user = await Users.findById(userId);
-        //console.log("user:", user);
-
-        // Get the user_type as a string since user_type is an ObjectId
         const userType = user?.user_type?.toString();
-        //console.log("user_type:", userType);
 
-        let product;
+        let products;
         if (userType === '676c07e68c1c6815439b181c') {
-            // Fetch all products for admin
-            product = await Product.find({});
-            //console.log("All Products Fetched (from index.js backend) for Admin",product);
+            products = await Product.find({});
         } else {
-            // Fetch products that are not blocked or don't have the blocked field
-            product = await Product.find({
+            products = await Product.find({
                 $or: [
                     { blocked: false },
                     { blocked: { $exists: false } },
                 ],
             });
-            console.log("All Products Fetched (from index.js backend) excluding blocked products");
         }
 
-        res.send(product);
+        res.send(products);
+
+        const outOfStockProducts = products.filter(p => p.available === 0);
+        let support = "sreeragakhd2002@gmail.com";
+        const adminEmail = "admin@example.com"; // Replace with the actual admin email
+
+        outOfStockProducts.forEach(async (product) => {
+            console.log("Out of Stock Product:", product);
+
+            let productid = product.id;
+            let url = `http://localhost:3000/product/${productid}`;
+
+            const seller = await Users.findById(product.added_by);
+            const recipientEmail = seller ? seller.email : adminEmail;
+            
+            console.log(`Sending email to: ${recipientEmail}`);
+            const email_template = await outofstock_product_template(seller?.name || 'Admin', recipientEmail, product.name, product._id, url, support);
+            const emailResult = await sendEmail(recipientEmail, "Product Out of Stock Notification", email_template);
+            if (emailResult.success) {
+                console.log(`Email sent successfully to ${recipientEmail}`);
+                return;
+            } else {
+                console.log(`Failed to send email to ${recipientEmail}`);
+            }
+        });
     } catch (error) {
         console.error("Error fetching products:", error);
         res.status(500).json({ success: false, message: 'Server error' });
@@ -951,7 +955,7 @@ app.post('/addtocart', fetchUser, async (req, res) => {
             return res.status(400).json({ message: "Invalid item ID" });
         }
 
-        console.log("Adding item to cart:", itemId);
+        //console.log("Adding item to cart:", itemId);
 
         const updatedUser = await Users.findByIdAndUpdate(
             req.user.user_id,
@@ -1093,7 +1097,7 @@ app.post('/removefromcart', fetchUser, async (req, res) => {
             await updatedUser.save();
         }
 
-        console.log("Updated cartData:", updatedUser.cartData);
+        //console.log("Updated cartData:", updatedUser.cartData);
 
         res.status(200).json({
             message: "Item removed from the cart",
@@ -1108,7 +1112,42 @@ app.post('/removefromcart', fetchUser, async (req, res) => {
     }
 });
 
+// app.post('/addfromcart', fetchUser, async (req, res) => {
+//     try {
+//         const { itemId } = req.body;
 
+//         if (!itemId) {
+//             return res.status(400).json({ message: "Invalid item ID" });
+//         }
+
+//         console.log("Attempting to add item to cart:", itemId);
+        
+
+//         // Use `findByIdAndUpdate` for atomic update and save
+//         const updatedUser = await Users.findByIdAndUpdate(
+//             req.user.user_id,
+//             { $inc: { [`cartData.${itemId}`]: 1 } }, // Increment the item quantity
+//             { new: true } // Return the updated document
+//         );
+
+//         if (!updatedUser) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         //console.log("Updated cartData:", updatedUser.cartData);
+
+//         res.status(200).json({
+//             message: "Item added to the cart",
+//             cartData: updatedUser.cartData,
+//         });
+//     } catch (error) {
+//         console.error("Error adding item to the cart:", error);
+//         res.status(500).json({
+//             message: "Error adding item to the cart",
+//             error: error.message,
+//         });
+//     }
+// });
 
 
 app.post('/addfromcart', fetchUser, async (req, res) => {
@@ -1121,11 +1160,29 @@ app.post('/addfromcart', fetchUser, async (req, res) => {
 
         console.log("Attempting to add item to cart:", itemId);
 
-        // Use `findByIdAndUpdate` for atomic update and save
+        // Fetch the product by its `id` field
+        const product = await Product.findOne({ id: itemId });
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Check stock availability
+        const stockAvailable = product.available;
+
+        // Fetch the user's current cart data
+        const user = await Users.findById(req.user.user_id);
+        const cartQuantity = user.cartData[itemId] || 0;
+
+        // Validate cart quantity against the stock available
+        if (cartQuantity >= stockAvailable) {
+            return res.status(400).json({ message: "Cannot add more than the available stock" });
+        }
+
+        // Increment the item quantity in the cart by 1
         const updatedUser = await Users.findByIdAndUpdate(
             req.user.user_id,
-            { $inc: { [`cartData.${itemId}`]: 1 } }, // Increment the item quantity
-            { new: true } // Return the updated document
+            { $inc: { [`cartData.${itemId}`]: 1 } },
+            { new: true }
         );
 
         if (!updatedUser) {
@@ -1148,6 +1205,64 @@ app.post('/addfromcart', fetchUser, async (req, res) => {
 });
 
 
+// Endpoint to get user details
+app.get('/getuser', fetchUser, async (req, res) => {
+    try {
+        const user = await Users.findById(req.user.user_id)
+            .select('_id name email user_type'); // Select only the required fields
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json({ user });
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Endpoint to update product quantity
+app.post('/updatequantity', fetchUser, async (req, res) => {
+    try {
+        const { id, quantity } = req.body;
+
+        if (!id || quantity == null) {
+            return res.status(400).json({ success: false, message: 'Invalid product ID or quantity' });
+        }
+
+        const product = await Product.findById(id);
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
+        // Fetch the user to check if they are the product owner or an admin
+        const user = await Users.findById(req.user.user_id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        console.log("Product:", product); // Add logging for debugging
+        console.log("User:", user);       // Add logging for debugging
+
+        // Ensure that user._id is defined before comparing
+        if (!user._id) {
+            return res.status(400).json({ success: false, message: 'User information is incomplete', details: { user }});
+        }
+
+        // Check if the user is allowed to update the quantity
+        if ((product.added_by && product.added_by.toString() !== user._id.toString()) && user.user_type !== '676c07e68c1c6815439b181c') {
+            return res.status(403).json({ success: false, message: 'Permission denied' });
+        }
+
+        // Update the product quantity
+        product.available = quantity;
+        await product.save();
+
+        res.status(200).json({ success: true, message: 'Quantity updated successfully!', product });
+    } catch (error) {
+        console.error("Error updating quantity:", error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
 
 
 app.post('/deletefromcart', fetchUser, async (req, res) => {
@@ -1176,8 +1291,6 @@ app.post('/deletefromcart', fetchUser, async (req, res) => {
         return res.status(500).json({ errors: "Error deleting item from the cart" });
     }
 });
-
-
 
 app.post('/placeOrder', fetchUser, async (req, res) => {
     try {
@@ -1221,8 +1334,6 @@ app.post('/clearcart', fetchUser, async (req, res) => {
     }
 });
 
-
-
 // User Route
 app.get("/user", fetchUser, async (req, res) => {
     try {
@@ -1247,3 +1358,17 @@ app.listen(port, (error) => {
         console.error("Error starting server:", error);
     }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+

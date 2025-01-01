@@ -474,37 +474,64 @@ const ShopContextProvider = (props) => {
 
 
 
-    const addFromCart = (itemId) => {
-        setCartItems((prev) => {
-            const updatedCart = { ...prev };
-            updatedCart[itemId] = (updatedCart[itemId] || 0) + 1;
-            return updatedCart;
-        });
+    // const addFromCart = (itemId) => {
+    //     setCartItems((prev) => {
+    //         const updatedCart = { ...prev };
+    //         updatedCart[itemId] = (updatedCart[itemId] || 0) + 1;
+    //         return updatedCart;
+    //     });
 
+    //     if (localStorage.getItem('auth-token')) {
+    //         fetch('http://localhost:4000/addfromcart', {
+    //             method: 'POST',
+    //             headers: {
+    //                 Accept: 'application/json',
+    //                 'auth-token': localStorage.getItem('auth-token'),
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({ itemId }),
+    //         })
+    //             .then((response) => {
+    //                 if (!response.ok) {
+    //                     throw new Error('Failed to add item to cart');
+    //                 }
+    //                 return response.json();
+    //             })
+    //             .then((data) => {
+    //                 setCartItems(data.cartData); // Sync state with updated cartData from backend
+    //             })
+    //             .catch((error) => console.error('Error:', error));
+    //     }
+    // };
+
+    const addFromCart = async (itemId) => {
         if (localStorage.getItem('auth-token')) {
-            fetch('http://localhost:4000/addfromcart', {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'auth-token': localStorage.getItem('auth-token'),
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ itemId }),
-            })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error('Failed to add item to cart');
-                    }
-                    return response.json();
-                })
-                .then((data) => {
-                    setCartItems(data.cartData); // Sync state with updated cartData from backend
-                })
-                .catch((error) => console.error('Error:', error));
+            try {
+                const response = await fetch('http://localhost:4000/addfromcart', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'auth-token': localStorage.getItem('auth-token'),
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ itemId }),
+                });
+    
+                if (response.status === 400) {
+                    const errorData = await response.json();
+                    alert(errorData.message); // Alert user if stock limit is exceeded
+                } else if (response.ok) {
+                    const data = await response.json();
+                    setCartItems(data.cartData); // Sync state with updated cartData from backend only if successful
+                } else {
+                    throw new Error('Failed to add item to cart');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
     };
-
-
+    
 
     const getTotalCartAmount = () => {
         let totalAmount = 0;
