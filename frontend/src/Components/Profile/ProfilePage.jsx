@@ -277,6 +277,7 @@ const ProfilePage = () => {
                         headers: {
                             'auth-token': authToken,
                             'Content-Type': 'application/json',
+                            'Cache-Control': 'no-cache',
                         },
                     });
 

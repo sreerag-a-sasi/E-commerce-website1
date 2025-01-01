@@ -31,6 +31,10 @@ const productSchema = new Schema({
     },
     added_by: String,
     seller: String,
+    blocked: { // New field to track block status
+        type: Boolean,
+        default: false
+    },
 });
 
 const Product = mongoose.model('Product', productSchema);

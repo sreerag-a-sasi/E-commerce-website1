@@ -300,6 +300,10 @@ const path = require("path");
 const cors = require("cors");
 const fs = require('fs');
 const new_user_template = require("./utils/New_user").newuser;
+const blocked_user_template = require("./utils/Blocked_user").blockeduser;
+const Unblocked_user_template = require("./utils/Unblocked_user").Unblockeduser;
+const blocked_product_template = require("./utils/Blocked_product").blockedproduct;
+const unblocked_product_template = require("./utils/Unblocked_product").Unblockedproduct;
 const sendEmail = require("./utils/send-email").sendEmail;
 
 // Load environment variables
@@ -307,7 +311,7 @@ dotenv.config();
 const secretKey = process.env.PRIVATE_KEY;
 
 // Debug: Verify secret key
-console.log('Loaded Secret Key:', secretKey);
+//console.log('Loaded Secret Key:', secretKey);
 
 // Middleware setup
 app.use(express.json());
@@ -521,6 +525,7 @@ app.post('/signup', async (req, res) => {
     try {
         // Check if user already exists
         let check = await Users.findOne({ email: req.body.email });
+        let support = "sreeragakhd2002@gmail.com";
         if (check) {
             return res.status(400).json({ success: false, errors: "An existing user found with the same email ID!" });
         }
@@ -557,7 +562,7 @@ app.post('/signup', async (req, res) => {
 
         if (user) {
             console.log("New user created:", user);
-            let email_template = await new_user_template(user.name, user.email, req.body.password);
+            let email_template = await new_user_template(user.name, user.email, req.body.password, support);
             await sendEmail(user.email, "New user created...", email_template);
         }
     } catch (error) {
@@ -619,11 +624,21 @@ app.post('/login', async (req, res) => {
 app.post('/toggleblockuser', async (req, res) => {
     try {
         const { id, blocked } = req.body;
+        let support = "sreeragakhd2002@gmail.com";
         let user = await Users.findById(id);
         if (user) {
+            console.log("user name : ", user.username);
+            console.log("user email : ", user.email);
             user.blocked = blocked;
             await user.save();
             res.json({ success: true, message: `User ${blocked ? 'blocked' : 'unblocked'} successfully!` });
+            if (user.blocked = blocked) {
+                let email_template = await blocked_user_template(user.name, user.email, support);
+                await sendEmail(user.email, "Your Account Has Been Blocked!!!", email_template);
+            } else {
+                let email_template = await Unblocked_user_template(user.name, user.email, support);
+                await sendEmail(user.email, "Your Account Has Been Unblocked!!!", email_template);
+            }
         } else {
             res.status(404).json({ success: false, message: 'User not found' });
         }
@@ -632,6 +647,47 @@ app.post('/toggleblockuser', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
+
+
+app.post('/toggleblockproduct', async (req, res) => {
+    try {
+        const { id, blocked } = req.body;
+        let support = "sreeragakhd2002@gmail.com";
+        let product = await Product.findById(id);
+        let userId = product.added_by;
+
+        const seller = await Users.findById(userId);
+        console.log("user from block product:", seller);
+
+
+        if (product) {
+            // console.log("Product name:", product.name);
+            // console.log("Product ID:", product._id);
+            product.blocked = blocked;
+            await product.save();
+            res.json({ success: true, message: `Product ${blocked ? 'blocked' : 'unblocked'} successfully!` });
+
+
+            let email_template;
+            let productname = product.name;
+            let productid = product.id;
+            if (blocked) {
+                email_template = await blocked_product_template(seller.name, seller.email,productname,productid, support);
+                await sendEmail(seller.email, "Product Blocked Notification", email_template);
+            } else {
+                email_template = await unblocked_product_template(seller.name,seller.email,productname,productid, support);
+                await sendEmail(seller.email, "Product Unblocked Notification", email_template);
+            }
+        } else {
+            res.status(404).json({ success: false, message: 'Product not found' });
+        }
+    } catch (error) {
+        console.error("Error blocking/unblocking product:", error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+
 
 // Endpoint to update user details
 app.post('/updateuser', async (req, res) => {
@@ -677,11 +733,66 @@ app.post('/updateuser', async (req, res) => {
 })
 
 
+// app.get('/allproducts', async (req, res) => {
+//     let product = await Product.find({});
+//     console.log("All Products Fetched (from index.js backend)");
+//     res.send(product);
+// });
+
+
+
 app.get('/allproducts', async (req, res) => {
-    let product = await Product.find({});
-    console.log("All Products Fetched (from index.js backend)");
-    res.send(product);
+    try {
+        const token = req.header('auth-token');
+        //console.log("token from allproducts:", token);
+
+        if (!token) {
+            return res.status(401).json({ success: false, message: 'Access Denied' });
+        }
+
+        let userId;
+        try {
+            const verified = jwt.verify(token, secretKey);
+            userId = verified.user_id;
+        } catch (error) {
+            return res.status(400).json({ success: false, message: 'Invalid Token' });
+        }
+
+        // Fetch the user's type
+        const user = await Users.findById(userId);
+        //console.log("user:", user);
+
+        // Get the user_type as a string since user_type is an ObjectId
+        const userType = user?.user_type?.toString();
+        //console.log("user_type:", userType);
+
+        let product;
+        if (userType === '676c07e68c1c6815439b181c') {
+            // Fetch all products for admin
+            product = await Product.find({});
+            //console.log("All Products Fetched (from index.js backend) for Admin",product);
+        } else {
+            // Fetch products that are not blocked or don't have the blocked field
+            product = await Product.find({
+                $or: [
+                    { blocked: false },
+                    { blocked: { $exists: false } },
+                ],
+            });
+            console.log("All Products Fetched (from index.js backend) excluding blocked products");
+        }
+
+        res.send(product);
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
 });
+
+
+
+
+
 
 // Example: Query to fetch all users with populated user_type
 app.get('/allusers', async (req, res) => {

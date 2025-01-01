@@ -173,11 +173,21 @@ const ShopContextProvider = (props) => {
 
     useEffect(() => {
         // Fetch all products
-        fetch('http://localhost:4000/allproducts')
+        fetch('http://localhost:4000/allproducts', {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'auth-token': localStorage.getItem('auth-token'), // Added auth-token here
+                'Content-Type': 'application/json'
+            },
+        })
             .then((response) => response.json())
             .then((data) => {
-                console.log('Fetched Products:', data);
-                setAllProduct(data);
+                // console.log('Fetched Products:', data);
+                // setAllProduct(data);
+                const unblockedProducts = data.filter(product => !product.blocked);
+                setAllProduct(unblockedProducts);
+
             })
             .catch((error) => console.error('Error fetching products:', error));
 
@@ -231,8 +241,8 @@ const ShopContextProvider = (props) => {
             })
             .then((data) => {
                 if (data && data.cartData) {
-                    console.log("data:",data, "cartdata",data.cartData);
-                    
+                    console.log("data:", data, "cartdata", data.cartData);
+
                     setCartItems(data.cartData);
                 } else {
                     console.log('Invalid cart data or cart is empty:', data);
@@ -382,7 +392,7 @@ const ShopContextProvider = (props) => {
             },
             body: JSON.stringify(formData),
         }).then((response) => response.json()).then((data) => responseData = data);
-    
+
         console.log("responseData:", responseData); // Log responseData
         if (responseData) {
             console.log("responseData.user:", responseData.user); // Log responseData.user
@@ -390,13 +400,13 @@ const ShopContextProvider = (props) => {
                 console.log("responseData.user.user_type:", responseData.user.user_type); // Log responseData.user.user_type
             }
         }
-    
+
         if (responseData.success) {
             localStorage.setItem('auth-token', responseData.token);
             alert('Login successful!');
-            if (responseData.user && 
-                (responseData.user.user_type === '676c07e68c1c6815439b181c' || 
-                responseData.user.user_type === '676c07f88c1c6815439b181e')) {
+            if (responseData.user &&
+                (responseData.user.user_type === '676c07e68c1c6815439b181c' ||
+                    responseData.user.user_type === '676c07f88c1c6815439b181e')) {
                 window.location.replace("/Admin/addproduct");
             } else {
                 window.location.replace("/");
@@ -405,7 +415,7 @@ const ShopContextProvider = (props) => {
             alert(responseData.errors); // Handle blocked state by showing error
         }
     };
-    
+
 
 
     const deleteFromCart = (itemId) => {
