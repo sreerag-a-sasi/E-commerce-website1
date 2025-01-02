@@ -24,8 +24,57 @@
     flex-direction: column;
     gap: 25px;
     border: 1px solid #d0d0d0;
-    padding: 48px;
+    padding: 20px;
     padding-bottom: 70px;
+    height: 30vh;
+    overflow-y: auto;
+}
+.review-input{
+    align-items: center;
+    height: 60px;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+.review-input textarea{
+    width: 100%;
+    outline: none;
+    border: 0;
+    height: 50px;
+    padding: 10px 0px 10px 10px;
+    background-color: #d0d0d0;
+    font-size: 16px;
+    font-family: 'Times New Roman', Times, serif;
+}
+.reviews button{
+    background-color: black;
+    color: white;
+    border: 0;
+    outline: none;
+    width: 150px;
+    height: 40px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.review{
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    align-items: center;
+}
+.review-left{
+    font-family: 'Times New Roman', Times, serif;
+}
+.review-right{
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12px;
+}
+.name{
+    color: blue;
+    font-size: 17px;
+}
+.content{
+    font-size: 18px;
+    font-family: Arial, Helvetica, sans-serif;
 }
 @media(max-width:1280px){
     .descriptonbox{
@@ -38,6 +87,11 @@
     }
     .descriptionbox-description{
         font-size: 14px;
+    }
+    .review{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 @media(max-width:1280px){

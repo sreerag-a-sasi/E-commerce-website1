@@ -24,6 +24,7 @@ const userSchema = new Schema({
         type: Boolean,
         default: false
     },
+    order_history: [{ type: Schema.Types.ObjectId, ref: 'OrderHistory' }],
 });
 
 const Users = mongoose.model('Users', userSchema);

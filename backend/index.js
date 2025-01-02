@@ -330,6 +330,8 @@ mongoose.connect("mongodb+srv://sreerag-a-sasi:killer027on@cluster0.zw9vy.mongod
 const Users = require('./db/models/User');
 const Product = require('./db/models/Product');
 const User_type = require('./db/models/user_types');
+const OrderHistory = require('./db/models/orderHistory'); 
+const Review = require('./db/models/review');
 
 app.get('/usertypes', async (req, res) => {
     try {
@@ -750,11 +752,11 @@ app.get('/allproducts', async (req, res) => {
         const user = await Users.findById(userId);
         const userType = user?.user_type?.toString();
 
-        let products;
+        let product;
         if (userType === '676c07e68c1c6815439b181c') {
-            products = await Product.find({});
+            product = await Product.find({});
         } else {
-            products = await Product.find({
+            product = await Product.find({
                 $or: [
                     { blocked: false },
                     { blocked: { $exists: false } },
@@ -762,9 +764,9 @@ app.get('/allproducts', async (req, res) => {
             });
         }
 
-        res.send(products);
+        res.send(product);
 
-        const outOfStockProducts = products.filter(p => p.available === 0);
+        const outOfStockProducts = product.filter(p => p.available === 0);
         let support = "sreeragakhd2002@gmail.com";
         const adminEmail = "admin@example.com"; // Replace with the actual admin email
 
@@ -1292,6 +1294,32 @@ app.post('/deletefromcart', fetchUser, async (req, res) => {
     }
 });
 
+// app.post('/placeOrder', fetchUser, async (req, res) => {
+//     try {
+//         const { products } = req.body;
+
+//         if (!products || products.length === 0) {
+//             return res.status(400).json({ message: "No products to place order" });
+//         }
+
+//         const updateOperations = products.map(product => ({
+//             updateOne: {
+//                 filter: { id: product.id },
+//                 update: { $inc: { available: -product.quantity } } // Decrease the available quantity
+//             }
+//         }));
+
+//         await Product.bulkWrite(updateOperations);
+
+//         res.status(200).json({ message: "Order placed successfully" });
+//     } catch (error) {
+//         console.error("Error placing order:", error);
+//         res.status(500).json({ message: "Error placing order", error: error.message });
+//     }
+// });
+
+
+
 app.post('/placeOrder', fetchUser, async (req, res) => {
     try {
         const { products } = req.body;
@@ -1300,14 +1328,36 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
             return res.status(400).json({ message: "No products to place order" });
         }
 
+        const userId = req.user.user_id;
+
+        // Ensure ObjectId casting with _id
         const updateOperations = products.map(product => ({
             updateOne: {
-                filter: { id: product.id },
+                filter: { _id: product._id }, // Ensure proper use of ObjectId
                 update: { $inc: { available: -product.quantity } } // Decrease the available quantity
             }
         }));
 
         await Product.bulkWrite(updateOperations);
+
+        const user = await Users.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const orderHistoryEntries = products.map(product => ({
+            product: product._id, // Ensure proper use of ObjectId
+            quantity: product.quantity,
+            totalPrice: product.new_price * product.quantity, // Calculate total price
+        }));
+
+        // Create OrderHistory entries
+        const orderHistoryDocs = await OrderHistory.insertMany(orderHistoryEntries);
+
+        // Add Order History references to the user
+        user.order_history.push(...orderHistoryDocs.map(doc => doc._id));
+        await user.save();
 
         res.status(200).json({ message: "Order placed successfully" });
     } catch (error) {
@@ -1315,6 +1365,102 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
         res.status(500).json({ message: "Error placing order", error: error.message });
     }
 });
+
+
+
+// Get Order History Endpoint
+app.get('/getOrderHistory', fetchUser, async (req, res) => {
+    try {
+        const userId = req.user.user_id;
+        const user = await Users.findById(userId).populate({
+            path: 'order_history',
+            populate: {
+                path: 'product', 
+                model: 'Product' 
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({ order_history: user.order_history });
+        console.log("order history : ", user.order_history);
+    } catch (error) {
+        console.error("Error fetching order history:", error);
+        res.status(500).json({ message: "Error fetching order history", error: error.message });
+    }
+});
+
+
+
+// Add Review Endpoint
+app.post('/addreview', fetchUser, async (req, res) => {
+    try {
+        const { productId, content } = req.body;
+        const userId = req.user.user_id;
+
+        // Find the product
+        const product = await Product.findById(productId).populate('reviews');
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        // const user = await Users.findById(userId);
+        // console.log("user from addreview : ",user);
+        
+
+        // Create a new review
+        const newReview = new Review({
+            user: userId, // Ensure correct usage of ObjectId
+            content: content,
+            date: new Date()
+        });
+
+        // Save the review and associate it with the product
+        const savedReview = await newReview.save();
+        product.reviews.push(savedReview._id);
+        await product.save();
+
+        res.status(200).json({ message: "Review added successfully", review: savedReview });
+    } catch (error) {
+        console.error("Error adding review:", error);
+        res.status(500).json({ message: "Error adding review", error: error.message });
+    }
+});
+
+
+// Get Product Details with Reviews and User Information
+app.get('/product/:id', async (req, res) => {
+    try {
+        const productId = req.params.id;
+
+        // Fetch product with reviews and populate user details
+        const product = await Product.findById(productId)
+            .populate({
+                path: 'reviews',
+                select:'content date',
+                populate: {
+                    path: 'user',
+                    model: 'Users',
+                    select: 'name email', // Select fields to return from User model
+                }
+            });
+        
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        
+        res.status(200).json({ product, reviews: product.reviews });
+    } catch (error) {
+        console.error("Error fetching product:", error);
+        res.status(500).json({ message: "Error fetching product", error: error.message });
+    }
+});
+
+
+
+
+
 
 app.post('/clearcart', fetchUser, async (req, res) => {
     try {
