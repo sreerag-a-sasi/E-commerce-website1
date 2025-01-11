@@ -137,6 +137,94 @@
 // export default Item;
 
 
+// import React, { useContext, useEffect, useState } from 'react';
+// import './Item.css';
+// import { Link } from "react-router-dom";
+// import wish from "../Assets/wish.png";
+// import wishlist from "../Assets/wishlist.png";
+// import { ShopContext } from '../../Context/ShopContext';
+
+// const Item = (props) => {
+//     const mainImage = Array.isArray(props.image) && props.image.length > 0 ? props.image[0] : null;
+//     const { addToWishlist } = useContext(ShopContext);
+//     const { deleteFromWishlist} = useContext(ShopContext);
+//     const [isInWishlist, setIsInWishlist] = useState(false);
+
+//     useEffect(() => {
+//         const authToken = localStorage.getItem('auth-token');
+
+//         if (authToken) {
+//             const checkWishlist = async () => {
+//                 try {
+//                     const response = await fetch('http://localhost:4000/checkwishlist', {
+//                         method: 'POST',
+//                         headers: {
+//                             Accept: 'application/json',
+//                             'auth-token': authToken,
+//                             'Content-Type': 'application/json'
+//                         },
+//                         body: JSON.stringify({ itemId: props.id })
+//                     });
+//                     if (!response.ok) {
+//                         throw new Error(`HTTP error! status: ${response.status}`);
+//                     }
+//                     const data = await response.json();
+//                     if (data.isInWishlist) {
+//                         setIsInWishlist(true);
+//                     }
+//                 } catch (error) {
+//                     console.error('Error checking wishlist:', error);
+//                 }
+//             };
+//             checkWishlist();
+//         }
+//     }, [props.id]);
+
+//     const handleAddToWishlist = (itemId) => {
+//         addToWishlist(itemId);
+//         window.location.reload(); // Reload the page to update
+//     };
+    
+//     const handleRemoveFromWishlist = (itemId) => {
+//         deleteFromWishlist(itemId);
+//         window.location.reload(); // Reload the page to update
+//     };
+    
+
+//     return (
+//         <div className="item">
+//             <Link to={`/product/${props.id}`}>
+//                 <img className="mainimage"
+//                     onClick={props.onImageClick}
+//                     src={mainImage}
+//                     alt={props.name}
+//                 />
+//             </Link>
+//             <p>{props.name}</p>
+//             <div className="under">
+//                 <div className="item-prices">
+//                     <div className="item-price-new">
+//                         ${props.new_price}
+//                     </div>
+//                     <div className="item-price-old">
+//                         ${props.old_price}
+//                     </div>
+//                 </div>
+//                 <div>
+//                     {isInWishlist ? (
+//                         <img className="wish" src={wishlist} onClick={() => { handleRemoveFromWishlist(props.id) }} alt="Remove from Wishlist" />
+//                     ) : (
+//                         <img className="wish" onClick={() => { handleAddToWishlist(props.id) }} src={wish} alt="Add to Wishlist" />
+//                     )}
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default Item;
+
+
 import React, { useContext, useEffect, useState } from 'react';
 import './Item.css';
 import { Link } from "react-router-dom";
@@ -147,6 +235,7 @@ import { ShopContext } from '../../Context/ShopContext';
 const Item = (props) => {
     const mainImage = Array.isArray(props.image) && props.image.length > 0 ? props.image[0] : null;
     const { addToWishlist } = useContext(ShopContext);
+    const { deleteFromWishlist } = useContext(ShopContext);
     const [isInWishlist, setIsInWishlist] = useState(false);
 
     useEffect(() => {
@@ -179,6 +268,16 @@ const Item = (props) => {
         }
     }, [props.id]);
 
+    const handleAddToWishlist = (itemId) => {
+        addToWishlist(itemId);
+        window.location.reload(); // Reload the page to update
+    };
+
+    const handleRemoveFromWishlist = (itemId) => {
+        deleteFromWishlist(itemId);
+        window.location.reload(); // Reload the page to update
+    };
+
     return (
         <div className="item">
             <Link to={`/product/${props.id}`}>
@@ -200,9 +299,9 @@ const Item = (props) => {
                 </div>
                 <div>
                     {isInWishlist ? (
-                        <img className="wish" src={wishlist} alt="In Wishlist" style={{ cursor: 'default' }} />
+                        <img className="wish" src={wishlist} onClick={() => {deleteFromWishlist(props.id);window.location.reload();}} alt="Remove from Wishlist" />
                     ) : (
-                        <img className="wish" onClick={() => { addToWishlist(props.id) }} src={wish} alt="Add to Wishlist" />
+                        <img className="wish" onClick={() => {addToWishlist(props.id);window.location.reload();}} src={wish} alt="Add to Wishlist" />
                     )}
                 </div>
             </div>

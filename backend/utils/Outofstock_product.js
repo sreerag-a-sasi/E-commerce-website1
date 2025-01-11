@@ -147,6 +147,7 @@ exports.outofstockproducts = function (name, email,productname,productid,url, su
                                 <br><br>                             
                                We regret to inform you that your product is currently out of stock.
                               Our system has detected that the quantity of this product has reached zero. As a result, it is no longer available for purchase until you restock it.
+                              Please notice that you have to login to your account before using the url, after login paste the url in the tab and you will be redirected to the product that is gone out of stock.
                               **Next Steps:** Please update the inventory for this product to make it available again. If you experience any issues or have further questions, please contact our support team at <b class="text-warning">${support}</b>.
 
                               We value your participation in our community and look forward to your continued success.

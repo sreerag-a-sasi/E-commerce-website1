@@ -35,6 +35,9 @@ h2 {
     margin-right: 20px;
     flex-shrink: 0;
 }
+.product-image:hover{
+    cursor: pointer;
+}
 
 .product-details {
     font-size: 16px;
@@ -82,6 +85,12 @@ h2 {
 
 button:hover {
     background-color: #ff3333;
+}
+#fee{
+    color: #8d8888;
+    font-size: 12px;
+    font-family: 'Times New Roman', Times, serif;
+
 }
 
 /* Media Queries for Responsiveness */

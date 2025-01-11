@@ -19,6 +19,19 @@ const orderHistorySchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    shipped: {
+        type: Date,
+        default: Date.now,
+    },
+    billingInfo: {
+        fullname: { type: String, required: true },
+        email: { type: String, required: true },
+        phone: { type: String, required: true },
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        postal: { type: String, required: true },
+        country: { type: String, required: true }
+    },
 });
 
 const OrderHistory = mongoose.model('OrderHistory', orderHistorySchema);

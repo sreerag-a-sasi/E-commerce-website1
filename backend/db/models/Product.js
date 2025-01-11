@@ -35,6 +35,10 @@ const productSchema = new Schema({
         type: Boolean,
         default: false
     },
+    message_sent: { // New field to track message status
+        type: Boolean,
+        default: false
+    },
     reviews: [{ type: Schema.Types.ObjectId, ref: 'Review' }]
 });
 

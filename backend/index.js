@@ -312,14 +312,15 @@ dotenv.config();
 const secretKey = process.env.PRIVATE_KEY;
 
 // Debug: Verify secret key
-//console.log('Loaded Secret Key:', secretKey);
+console.log('Loaded Secret Key:', secretKey);
 
 // Middleware setup
 app.use(express.json());
 app.use(cors());
 
 // MongoDB Connection
-mongoose.connect("mongodb+srv://sreerag-a-sasi:killer027on@cluster0.zw9vy.mongodb.net/e-commerce", {
+// mongoose.connect("mongodb+srv://sreerag-a-sasi:killer027on@cluster0.zw9vy.mongodb.net/e-commerce", {
+mongoose.connect("mongodb://127.0.0.1:27017/e-commerce", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
@@ -330,8 +331,10 @@ mongoose.connect("mongodb+srv://sreerag-a-sasi:killer027on@cluster0.zw9vy.mongod
 const Users = require('./db/models/User');
 const Product = require('./db/models/Product');
 const User_type = require('./db/models/user_types');
-const OrderHistory = require('./db/models/orderHistory'); 
+const OrderHistory = require('./db/models/orderHistory');
 const Review = require('./db/models/review');
+const Address = require('./db/models/Adress');
+
 
 app.get('/usertypes', async (req, res) => {
     try {
@@ -667,14 +670,16 @@ app.post('/toggleblockproduct', async (req, res) => {
 
 
             let email_template;
+            const sellerName = seller?.name || "sir";
+            const sellerEmail = seller?.email || "sreeragakhd2002@gmail.com";
             let productname = product.name;
             let productid = product.id;
             if (blocked) {
-                email_template = await blocked_product_template(seller.name, seller.email,productname,productid, support);
-                await sendEmail(seller.email, "Product Blocked Notification", email_template);
+                email_template = await blocked_product_template(sellerName, sellerEmail, productname, productid, support);
+                await sendEmail(sellerEmail, "Product Blocked Notification", email_template);
             } else {
-                email_template = await unblocked_product_template(seller.name,seller.email,productname,productid, support);
-                await sendEmail(seller.email, "Product Unblocked Notification", email_template);
+                email_template = await unblocked_product_template(sellerName, sellerEmail, productname, productid, support);
+                await sendEmail(sellerEmail, "Product Unblocked Notification", email_template);
             }
         } else {
             res.status(404).json({ success: false, message: 'Product not found' });
@@ -685,7 +690,9 @@ app.post('/toggleblockproduct', async (req, res) => {
     }
 });
 
-// Endpoint to update user details
+
+
+
 app.post('/updateuser', async (req, res) => {
     try {
         const token = req.header('auth-token');
@@ -734,61 +741,214 @@ app.post('/updateuser', async (req, res) => {
 //     res.send(product);
 // });
 
+// app.get('/allproducts', async (req, res) => {
+
+//     try {
+//         const token = req.header('auth-token');
+//         if (!token) {
+//             return res.status(401).json({ success: false, message: 'Access Denied' });
+//         }
+
+//         let userId;
+//         try {
+//             const verified = jwt.verify(token, secretKey);
+//             userId = verified.user_id;
+//         } catch (error) {
+//             return res.status(400).json({ success: false, message: 'Invalid Token' });
+//         }
+
+//         const user = await Users.findById(userId);
+//         const userType = user?.user_type?.toString();
+
+//         let product;
+//         if (userType === '676c07e68c1c6815439b181c') {
+//             product = await Product.find({});
+//         } else {
+//             product = await Product.find({
+//                 $or: [
+//                     { blocked: false },
+//                     { blocked: { $exists: false } },
+//                 ],
+//             });
+//         }
+
+//         res.send(product);
+
+//         const outOfStockProducts = product.filter(p => p.available === 0);
+//         let support = "sreeragakhd2002@gmail.com";
+//         const adminEmail = "sreeragakhd2002@gmail.com"; // Replace with the actual admin email
+
+//         outOfStockProducts.forEach(async (product) => {
+//             console.log("Out of Stock Product:", product);
+
+//             let productid = product.id;
+//             let url = `http://localhost:3000/product/${productid}`;
+
+//             const seller = await Users.findById(product.added_by);
+//             const recipientEmail = seller ? seller.email : adminEmail;
+
+//             console.log(`Sending email to: ${recipientEmail}`);
+//             const email_template = await outofstock_product_template(seller?.name || 'Admin', recipientEmail, product.name, product._id, url, support);
+//             const emailResult = await sendEmail(recipientEmail, "Product Out of Stock Notification", email_template);
+//             if (emailResult.success) {
+//                 console.log(`Email sent successfully to ${recipientEmail}`);
+//                 return;
+//             } else {
+//                 console.log(`Failed to send email to ${recipientEmail}`);
+//             }
+//         });
+//     } catch (error) {
+//         console.error("Error fetching products:", error);
+//         res.status(500).json({ success: false, message: 'Server error' });
+//     }
+// });
+
+// app.get('/allproducts', async (req, res) => {
+//     try {
+//         const token = req.header('auth-token');
+
+//         let products;
+
+//         if (token) {
+//             // If token is provided, verify it
+//             let userId;
+//             try {
+//                 const verified = jwt.verify(token, secretKey);
+//                 userId = verified.user_id;
+//             } catch (error) {
+//                 return res.status(400).json({ success: false, message: 'Invalid Token' });
+//             }
+
+//             const user = await Users.findById(userId);
+//             const userType = user?.user_type?.toString();
+
+//             if (userType === '676c07e68c1c6815439b181c') {
+//                 // Admin can view all products
+//                 products = await Product.find({});
+//             } else {
+//                 // Non-admin users only see unblocked products
+//                 products = await Product.find({ blocked: { $ne: true } });
+//             }
+//         } else {
+//             // No token provided; show only unblocked products
+//             products = await Product.find({ blocked: { $ne: true } });
+//         }
+
+//         res.json(products);
+
+//         // Handle out-of-stock products for authenticated users with token
+//         if (token) {
+//             const outOfStockProducts = products.filter(p => p.available === 0);
+//             let support = "sreeragakhd2002@gmail.com";
+//             const adminEmail = "sreeragakhd2002@gmail.com";
+
+//             outOfStockProducts.forEach(async (product) => {
+//                 console.log("Out of Stock Product:", product);
+
+//                 let productid = product.id;
+//                 let url = `http://localhost:3000/product/${productid}`;
+
+//                 const seller = await Users.findById(product.added_by);
+//                 const recipientEmail = seller ? seller.email : adminEmail;
+
+//                 console.log(`Sending email to: ${recipientEmail}`);
+//                 const email_template = await outofstock_product_template(seller?.name || 'Admin', recipientEmail, product.name, product.id, url, support);
+//                 const emailResult = await sendEmail(recipientEmail, "Product Out of Stock Notification", email_template);
+//                 console.log('Email Result:', emailResult);
+
+//                 if (emailResult.success) {
+//                     console.log(`Email sent successfully to ${recipientEmail}`);
+//                     await Product.findByIdAndUpdate(product._id, { message_sent: true });
+//                 } else {
+//                     console.error(`Failed to send email to ${recipientEmail}. Error: ${emailResult.error || 'Unknown error'}`);
+//                 }
+
+//             });
+//         }
+//     } catch (error) {
+//         console.error("Error fetching products:", error);
+//         res.status(500).json({ success: false, message: 'Server error' });
+//     }
+// });
+
 app.get('/allproducts', async (req, res) => {
     try {
         const token = req.header('auth-token');
-        if (!token) {
-            return res.status(401).json({ success: false, message: 'Access Denied' });
-        }
+        let products;
 
-        let userId;
-        try {
-            const verified = jwt.verify(token, secretKey);
-            userId = verified.user_id;
-        } catch (error) {
-            return res.status(400).json({ success: false, message: 'Invalid Token' });
-        }
-
-        const user = await Users.findById(userId);
-        const userType = user?.user_type?.toString();
-
-        let product;
-        if (userType === '676c07e68c1c6815439b181c') {
-            product = await Product.find({});
-        } else {
-            product = await Product.find({
-                $or: [
-                    { blocked: false },
-                    { blocked: { $exists: false } },
-                ],
-            });
-        }
-
-        res.send(product);
-
-        const outOfStockProducts = product.filter(p => p.available === 0);
-        let support = "sreeragakhd2002@gmail.com";
-        const adminEmail = "admin@example.com"; // Replace with the actual admin email
-
-        outOfStockProducts.forEach(async (product) => {
-            console.log("Out of Stock Product:", product);
-
-            let productid = product.id;
-            let url = `http://localhost:3000/product/${productid}`;
-
-            const seller = await Users.findById(product.added_by);
-            const recipientEmail = seller ? seller.email : adminEmail;
-            
-            console.log(`Sending email to: ${recipientEmail}`);
-            const email_template = await outofstock_product_template(seller?.name || 'Admin', recipientEmail, product.name, product._id, url, support);
-            const emailResult = await sendEmail(recipientEmail, "Product Out of Stock Notification", email_template);
-            if (emailResult.success) {
-                console.log(`Email sent successfully to ${recipientEmail}`);
-                return;
-            } else {
-                console.log(`Failed to send email to ${recipientEmail}`);
+        if (token) {
+            // If token is provided, verify it
+            let userId;
+            try {
+                const verified = jwt.verify(token, secretKey);
+                userId = verified.user_id;
+            } catch (error) {
+                return res.status(400).json({ success: false, message: 'Invalid Token' });
             }
-        });
+
+            const user = await Users.findById(userId);
+            const userType = user?.user_type?.toString();
+
+            if (userType === '676c07e68c1c6815439b181c') {
+                // Admin can view all products
+                products = await Product.find({});
+            } else {
+                // Non-admin users only see unblocked products
+                products = await Product.find({ blocked: { $ne: true } });
+            }
+        } else {
+            // No token provided; show only unblocked products
+            products = await Product.find({ blocked: { $ne: true } });
+        }
+
+        res.json(products);
+
+        // Handle out-of-stock products for authenticated users with token
+        if (token) {
+            const outOfStockProducts = products.filter(p => p.available === 0 && !p.message_sent);
+            const support = "sreeragakhd2002@gmail.com";
+            const adminEmail = "sreeragakhd2002@gmail.com";
+
+            // Use a `for...of` loop to handle asynchronous operations
+            for (const product of outOfStockProducts) {
+                try {
+                    console.log("Out of Stock Product:", product);
+
+                    const productId = product.id;
+                    const url = `http://localhost:3000/product/${productId}`;
+                    const seller = await Users.findById(product.added_by);
+                    const recipientEmail = seller ? seller.email : adminEmail;
+
+                    console.log(`Sending email to: ${recipientEmail}`);
+                    const email_template = await outofstock_product_template(
+                        seller?.name || 'Admin',
+                        recipientEmail,
+                        product.name,
+                        product.id,
+                        url,
+                        support
+                    );
+
+                    const emailResult = await sendEmail(
+                        recipientEmail,
+                        "Product Out of Stock Notification",
+                        email_template
+                    );
+                    console.log('Email Result:', emailResult);
+                    
+                    if (emailResult.success) {
+                        console.log(`Email sent successfully to ${recipientEmail}`);
+                        await Product.findByIdAndUpdate(product._id, { message_sent: true });
+                    } else {
+                        console.error(
+                            `Failed to send email to ${recipientEmail}. Error: ${emailResult.error || 'Unknown error'}`
+                        );
+                    }                    
+                } catch (emailError) {
+                    console.error(`Error processing product ${product.name}:`, emailError);
+                }
+            }
+        }
     } catch (error) {
         console.error("Error fetching products:", error);
         res.status(500).json({ success: false, message: 'Server error' });
@@ -797,14 +957,10 @@ app.get('/allproducts', async (req, res) => {
 
 
 
-
-
-
-// Example: Query to fetch all users with populated user_type
 app.get('/allusers', async (req, res) => {
     try {
         const users = await Users.find().populate('user_type');  // Populate 'user_type'
-        console.log('Fetched Users:', users);
+        //console.log('Fetched Users:', users);
         res.json(users);  // Send the users to the front-end
     } catch (err) {
         res.status(500).json({ message: 'Error fetching users', error: err });
@@ -856,12 +1012,61 @@ app.post('/removeuser', async (req, res) => {
 });
 
 
+// app.get('/newcollections', async (req, res) => {
+//     try {
+//         // Fetch the newest 8 products, sorted by descending _id (assumes _id corresponds to creation time).
+//         const products = await Product.find({}).sort({ _id: -1 }).limit(8);
+//         // console.log("Fetched new collections:", products.map(p => p._id)); // Log only product IDs for brevity.
+//         console.log("Number of products in new collections :", products.length);
+//         res.status(200).json(products);
+//     } catch (error) {
+//         console.error("Error fetching new collections:", error);
+//         res.status(500).json({ success: false, message: 'An error occurred while fetching new collections' });
+//     }
+// });
+
+// app.get('/popularinwomen', async (req, res) => {
+//     try {
+//         // Fetch products in the women's category and take the first 4 for popularity.
+//         const products = await Product.find({ category: "women" }).limit(4);
+//         // console.log("Fetched popular products in women's category:", products.map(p => p._id)); // Log product IDs.
+//         console.log("Number of products in popular in wome :", products.length);
+//         res.status(200).json(products);
+//     } catch (error) {
+//         console.error("Error fetching popular products in women's category:", error);
+//         res.status(500).json({ success: false, message: 'An error occurred while fetching popular products in women\'s category' });
+//     }
+// });
+
+// app.get('/relatedproducts', async (req, res) => {
+//     try {
+//         const { category } = req.query; // Use query parameters to pass category for related products.
+//         if (!category) {
+//             console.error("Category not provided for related products");
+//             return res.status(400).json({ success: false, message: "Category is required to fetch related products" });
+//         }
+
+//         // Fetch related products in the same category and limit to 4.
+//         const relatedProducts = await Product.find({ category }).limit(4);
+//         console.log(`Fetched related products for category "${category}":`, relatedProducts.length);
+//         res.status(200).json(relatedProducts);
+//     } catch (error) {
+//         console.error("Error fetching related products:", error);
+//         res.status(500).json({ success: false, message: 'An error occurred while fetching related products' });
+//     }
+// });
+
+
+// Cart Endpoints
+
 app.get('/newcollections', async (req, res) => {
     try {
-        // Fetch the newest 8 products, sorted by descending _id (assumes _id corresponds to creation time).
-        const products = await Product.find({}).sort({ _id: -1 }).limit(8);
-        // console.log("Fetched new collections:", products.map(p => p._id)); // Log only product IDs for brevity.
-        console.log("Number of products in new collections :", products.length);
+        // Fetch the newest 8 products, excluding blocked ones
+        const products = await Product.find({ blocked: { $ne: true } })
+            .sort({ _id: -1 })
+            .limit(8);
+
+        console.log("Number of products in new collections:", products.length);
         res.status(200).json(products);
     } catch (error) {
         console.error("Error fetching new collections:", error);
@@ -871,10 +1076,10 @@ app.get('/newcollections', async (req, res) => {
 
 app.get('/popularinwomen', async (req, res) => {
     try {
-        // Fetch products in the women's category and take the first 4 for popularity.
-        const products = await Product.find({ category: "women" }).limit(4);
-        // console.log("Fetched popular products in women's category:", products.map(p => p._id)); // Log product IDs.
-        console.log("Number of products in popular in wome :", products.length);
+        // Fetch popular products in the "women" category, excluding blocked ones
+        const products = await Product.find({ category: "women", blocked: { $ne: true } }).limit(4);
+
+        console.log("Number of products in popular in women:", products.length);
         res.status(200).json(products);
     } catch (error) {
         console.error("Error fetching popular products in women's category:", error);
@@ -884,14 +1089,15 @@ app.get('/popularinwomen', async (req, res) => {
 
 app.get('/relatedproducts', async (req, res) => {
     try {
-        const { category } = req.query; // Use query parameters to pass category for related products.
+        const { category } = req.query; // Use query parameters to pass category for related products
         if (!category) {
             console.error("Category not provided for related products");
             return res.status(400).json({ success: false, message: "Category is required to fetch related products" });
         }
 
-        // Fetch related products in the same category and limit to 4.
-        const relatedProducts = await Product.find({ category }).limit(4);
+        // Fetch related products in the given category, excluding blocked ones
+        const relatedProducts = await Product.find({ category, blocked: { $ne: true } }).limit(4);
+
         console.log(`Fetched related products for category "${category}":`, relatedProducts.length);
         res.status(200).json(relatedProducts);
     } catch (error) {
@@ -901,7 +1107,8 @@ app.get('/relatedproducts', async (req, res) => {
 });
 
 
-// Cart Endpoints
+
+
 app.get('/getcart', fetchUser, async (req, res) => {
     try {
         const userData = await Users.findById(req.user.user_id);
@@ -1046,28 +1253,65 @@ app.post('/addtowishlist', fetchUser, async (req, res) => {
 });
 
 
+// app.post('/deletefromwishlist', fetchUser, async (req, res) => {
+//     try {
+//         const { itemId } = req.body;
+//         console.log("Attempting to delete item from wishlist:", itemId);
+
+//         const userData = await Users.findOne({ _id: req.user.user_id });
+//         if (userData.Wishlist && userData.Wishlist.includes(itemId)) {
+//             userData.Wishlist = userData.Wishlist.filter(id => id !== itemId);
+//             await userData.save();
+//             console.log("Item successfully deleted from wishlist");
+//             res.status(200).json({ message: "Item deleted from the wishlist" });
+//         } else {
+//             console.error("Item not found in wishlist");
+//             res.status(404).json({ errors: "Item not found in wishlist" });
+//         }
+//     } catch (error) {
+//         console.error("Error deleting item from wishlist:", error);
+//         res.status(500).json({ errors: "Error deleting item from the wishlist" });
+//     }
+// });
+
+// Other cart endpoints: removefromcart, addfromcart, deletefromcart
+
 app.post('/deletefromwishlist', fetchUser, async (req, res) => {
     try {
         const { itemId } = req.body;
+
+        if (!itemId) {
+            return res.status(400).json({ message: "Invalid item ID" });
+        }
+
         console.log("Attempting to delete item from wishlist:", itemId);
 
-        const userData = await Users.findOne({ _id: req.user.user_id });
-        if (userData.Wishlist && userData.Wishlist.includes(itemId)) {
-            userData.Wishlist = userData.Wishlist.filter(id => id !== itemId);
-            await userData.save();
-            console.log("Item successfully deleted from wishlist");
-            res.status(200).json({ message: "Item deleted from the wishlist" });
-        } else {
-            console.error("Item not found in wishlist");
-            res.status(404).json({ errors: "Item not found in wishlist" });
+        // Update the user's wishlist by removing the specified item
+        const updatedUser = await Users.findByIdAndUpdate(
+            req.user.user_id,
+            { $pull: { Wishlist: itemId } }, // Remove the item from the Wishlist array
+            { new: true } // Return the updated user document
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
         }
+
+        console.log("Item successfully deleted from wishlist");
+        res.status(200).json({
+            message: "Item deleted from the wishlist",
+            Wishlist: updatedUser.Wishlist,
+        });
     } catch (error) {
         console.error("Error deleting item from wishlist:", error);
-        res.status(500).json({ errors: "Error deleting item from the wishlist" });
+        res.status(500).json({
+            message: "Error deleting item from the wishlist",
+            error: error.message,
+        });
     }
 });
 
-// Other cart endpoints: removefromcart, addfromcart, deletefromcart
+
 app.post('/removefromcart', fetchUser, async (req, res) => {
     try {
         const { itemId } = req.body;
@@ -1123,7 +1367,7 @@ app.post('/removefromcart', fetchUser, async (req, res) => {
 //         }
 
 //         console.log("Attempting to add item to cart:", itemId);
-        
+
 
 //         // Use `findByIdAndUpdate` for atomic update and save
 //         const updatedUser = await Users.findByIdAndUpdate(
@@ -1223,6 +1467,49 @@ app.get('/getuser', fetchUser, async (req, res) => {
 });
 
 // Endpoint to update product quantity
+// app.post('/updatequantity', fetchUser, async (req, res) => {
+//     try {
+//         const { id, quantity } = req.body;
+
+//         if (!id || quantity == null) {
+//             return res.status(400).json({ success: false, message: 'Invalid product ID or quantity' });
+//         }
+
+//         const product = await Product.findById(id);
+//         if (!product) {
+//             return res.status(404).json({ success: false, message: 'Product not found' });
+//         }
+
+//         // Fetch the user to check if they are the product owner or an admin
+//         const user = await Users.findById(req.user.user_id);
+//         if (!user) {
+//             return res.status(404).json({ success: false, message: 'User not found' });
+//         }
+
+//         console.log("Product:", product); // Add logging for debugging
+//         console.log("User:", user);       // Add logging for debugging
+
+//         // Ensure that user._id is defined before comparing
+//         if (!user._id) {
+//             return res.status(400).json({ success: false, message: 'User information is incomplete', details: { user } });
+//         }
+
+//         // Check if the user is allowed to update the quantity
+//         if ((product.added_by && product.added_by.toString() !== user._id.toString()) && user.user_type !== '676c07e68c1c6815439b181c') {
+//             return res.status(403).json({ success: false, message: 'Permission denied' });
+//         }
+
+//         // Update the product quantity
+//         product.available = quantity;
+//         await product.save();
+
+//         res.status(200).json({ success: true, message: 'Quantity updated successfully!', product });
+//     } catch (error) {
+//         console.error("Error updating quantity:", error);
+//         res.status(500).json({ success: false, message: 'Server error' });
+//     }
+// });
+
 app.post('/updatequantity', fetchUser, async (req, res) => {
     try {
         const { id, quantity } = req.body;
@@ -1247,16 +1534,25 @@ app.post('/updatequantity', fetchUser, async (req, res) => {
 
         // Ensure that user._id is defined before comparing
         if (!user._id) {
-            return res.status(400).json({ success: false, message: 'User information is incomplete', details: { user }});
+            return res.status(400).json({ success: false, message: 'User information is incomplete', details: { user } });
         }
 
         // Check if the user is allowed to update the quantity
-        if ((product.added_by && product.added_by.toString() !== user._id.toString()) && user.user_type !== '676c07e68c1c6815439b181c') {
+        if (
+            (product.added_by && product.added_by.toString() !== user._id.toString()) &&
+            user.user_type !== '676c07e68c1c6815439b181c'
+        ) {
             return res.status(403).json({ success: false, message: 'Permission denied' });
         }
 
         // Update the product quantity
         product.available = quantity;
+
+        // Reset message_sent to false if quantity is updated successfully
+        if (product.message_sent && quantity > 0) {
+            product.message_sent = false;
+        }
+
         await product.save();
 
         res.status(200).json({ success: true, message: 'Quantity updated successfully!', product });
@@ -1320,36 +1616,167 @@ app.post('/deletefromcart', fetchUser, async (req, res) => {
 
 
 
+
+
+
+// app.post('/placeOrder', fetchUser, async (req, res) => {
+//     try {
+//         const { products } = req.body;
+
+//         if (!products || products.length === 0) {
+//             return res.status(400).json({ message: "No products to place order" });
+//         }
+
+//         const userId = req.user.user_id;
+
+//         // Ensure ObjectId casting with _id
+//         const updateOperations = products.map(product => ({
+//             updateOne: {
+//                 filter: { _id: product._id }, // Ensure proper use of ObjectId
+//                 update: { $inc: { available: -product.quantity } } // Decrease the available quantity
+//             }
+//         }));
+
+//         await Product.bulkWrite(updateOperations);
+
+//         const user = await Users.findById(userId);
+
+//         if (!user) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         const orderHistoryEntries = products.map(product => ({
+//             product: product._id, // Ensure proper use of ObjectId
+//             quantity: product.quantity,
+//             totalPrice: product.new_price * product.quantity, // Calculate total price
+//         }));
+
+//         // Create OrderHistory entries
+//         const orderHistoryDocs = await OrderHistory.insertMany(orderHistoryEntries);
+
+//         // Add Order History references to the user
+//         user.order_history.push(...orderHistoryDocs.map(doc => doc._id));
+//         await user.save();
+
+//         res.status(200).json({ message: "Order placed successfully" });
+//     } catch (error) {
+//         console.error("Error placing order:", error);
+//         res.status(500).json({ message: "Error placing order", error: error.message });
+//     }
+// });
+
+
+// Route to place an order
+// app.post('/placeOrder', fetchUser, async (req, res) => {
+//     try {
+//         const { products, billingInfo } = req.body;
+
+//         if (!products || products.length === 0) {
+//             return res.status(400).json({ message: "No products to place order" });
+//         }
+
+//         const userId = req.user.user_id;
+
+//         // Ensure ObjectId casting with _id for product and user
+//         const updateOperations = products.map(product => ({
+//             updateOne: {
+//                 filter: { _id: product._id },
+//                 update: { $inc: { available: -product.quantity } } // Decrease the available quantity
+//             }
+//         }));
+
+//         await Product.bulkWrite(updateOperations);
+
+//         const user = await Users.findById(userId);
+
+//         if (!user) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         // Prepare order history entries with billing info
+//         const orderHistoryEntries = products.map(product => ({
+//             product: product._id, // Ensure proper use of ObjectId
+//             quantity: product.quantity,
+//             totalPrice: product.new_price * product.quantity, // Calculate total price
+//             billingInfo: billingInfo // Add billing info to each order history entry
+//         }));
+
+//         // Create OrderHistory entries with billing info
+//         const orderHistoryDocs = await OrderHistory.insertMany(orderHistoryEntries);
+
+//         // Add Order History references to the user
+//         user.order_history.push(...orderHistoryDocs.map(doc => doc._id));
+//         await user.save();
+
+//         res.status(200).json({ message: "Order placed successfully", order: orderHistoryDocs });
+//     } catch (error) {
+//         console.error("Error placing order:", error);
+//         res.status(500).json({ message: "Error placing order", error: error.message });
+//     }
+// });
 app.post('/placeOrder', fetchUser, async (req, res) => {
     try {
-        const { products } = req.body;
+        const { products, billingInfo } = req.body;
 
         if (!products || products.length === 0) {
             return res.status(400).json({ message: "No products to place order" });
         }
 
-        const userId = req.user.user_id;
+        const userId = req.user.user_id; // Assuming the user's _id is decoded in the JWT
 
-        // Ensure ObjectId casting with _id
+        // Ensure ObjectId casting with _id for product updates
         const updateOperations = products.map(product => ({
             updateOne: {
-                filter: { _id: product._id }, // Ensure proper use of ObjectId
-                update: { $inc: { available: -product.quantity } } // Decrease the available quantity
+                filter: { _id: product._id },
+                update: { $inc: { available: -product.quantity } } // Decrease available stock
             }
         }));
 
         await Product.bulkWrite(updateOperations);
 
         const user = await Users.findById(userId);
-
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
+        // Ensure billingInfo contains all required fields
+        if (!billingInfo || !billingInfo.postalCode || !billingInfo.fullname || !billingInfo.email) {
+            return res.status(400).json({ message: "Billing information is incomplete" });
+        }
+
+        // Check if the user already has an address
+        let userAddress = await Address.findOne({ user: userId });
+        if (!userAddress) {
+            // Create a new address if none exists
+            const newAddress = new Address({
+                fullname: billingInfo.fullname,
+                email: billingInfo.email,
+                phone: billingInfo.phone,
+                city: billingInfo.city,
+                state: billingInfo.state,
+                postalCode: billingInfo.postalCode,
+                country: billingInfo.country,
+                user: userId  // Link the address to the user
+            });
+
+            userAddress = await newAddress.save();
+        }
+
+        // Prepare order history entries
         const orderHistoryEntries = products.map(product => ({
-            product: product._id, // Ensure proper use of ObjectId
+            product: product._id, // ObjectId reference for product
             quantity: product.quantity,
-            totalPrice: product.new_price * product.quantity, // Calculate total price
+            totalPrice: product.new_price * product.quantity,
+            billingInfo: { 
+                fullname: billingInfo.fullname,
+                email: billingInfo.email,
+                phone: billingInfo.phone,
+                city: billingInfo.city,
+                state: billingInfo.state,
+                postal: billingInfo.postalCode,
+                country: billingInfo.country
+            },
+            userAddress: userAddress._id // Add address reference
         }));
 
         // Create OrderHistory entries
@@ -1368,6 +1795,69 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
 
 
 
+
+
+
+
+
+
+
+// Fetch all addresses for the authenticated user
+app.get('/getAddresses', fetchUser, async (req, res) => {
+    try {
+        const userId = req.user.user_id; // Use the correct user ID from the JWT token
+        const addresses = await Address.find({ user: userId }); // Find addresses linked to the user
+        res.status(200).json({ addresses });
+    } catch (err) {
+        console.error("Error fetching addresses:", err);
+        res.status(500).json({ message: 'Error fetching addresses', error: err.message });
+    }
+});
+
+
+
+// Add a new address for the authenticated user
+app.post('/addAddress', fetchUser, async (req, res) => {
+    try {
+        const { fullname, email, phone, city, state, postalCode, country } = req.body;
+        const userId = req.user.user_id; // Get the user ID from the decoded JWT token
+
+        // Validate the required fields for the address
+        if (!fullname || !email || !phone || !city || !state || !postalCode || !country) {
+            return res.status(400).json({ message: "All address fields are required" });
+        }
+
+        // Create a new address document
+        const newAddress = new Address({
+            fullname,
+            email,
+            phone,
+            city,
+            state,
+            postalCode,
+            country,
+            user: userId // Link address to the user
+        });
+
+        // Save the new address
+        await newAddress.save();
+
+        res.status(201).json({ message: 'Address added successfully', address: newAddress });
+    } catch (err) {
+        console.error("Error adding address:", err);
+        res.status(500).json({ message: 'Error adding address', error: err.message });
+    }
+});
+
+
+
+
+
+
+
+
+
+
 // Get Order History Endpoint
 app.get('/getOrderHistory', fetchUser, async (req, res) => {
     try {
@@ -1375,8 +1865,8 @@ app.get('/getOrderHistory', fetchUser, async (req, res) => {
         const user = await Users.findById(userId).populate({
             path: 'order_history',
             populate: {
-                path: 'product', 
-                model: 'Product' 
+                path: 'product',
+                model: 'Product'
             }
         });
 
@@ -1385,7 +1875,7 @@ app.get('/getOrderHistory', fetchUser, async (req, res) => {
         }
 
         res.status(200).json({ order_history: user.order_history });
-        console.log("order history : ", user.order_history);
+        //console.log("order history : ", user.order_history);
     } catch (error) {
         console.error("Error fetching order history:", error);
         res.status(500).json({ message: "Error fetching order history", error: error.message });
@@ -1407,7 +1897,7 @@ app.post('/addreview', fetchUser, async (req, res) => {
         }
         // const user = await Users.findById(userId);
         // console.log("user from addreview : ",user);
-        
+
 
         // Create a new review
         const newReview = new Review({
@@ -1438,28 +1928,24 @@ app.get('/product/:id', async (req, res) => {
         const product = await Product.findById(productId)
             .populate({
                 path: 'reviews',
-                select:'content date',
+                select: 'content date',
                 populate: {
                     path: 'user',
                     model: 'Users',
                     select: 'name email', // Select fields to return from User model
                 }
             });
-        
+
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
         }
-        
+
         res.status(200).json({ product, reviews: product.reviews });
     } catch (error) {
         console.error("Error fetching product:", error);
         res.status(500).json({ message: "Error fetching product", error: error.message });
     }
 });
-
-
-
-
 
 
 app.post('/clearcart', fetchUser, async (req, res) => {

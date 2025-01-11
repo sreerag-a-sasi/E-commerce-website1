@@ -158,6 +158,7 @@ export const ShopContext = createContext();
 const ShopContextProvider = (props) => {
     const [allProduct, setAllProduct] = useState([]);
     const [cartItems, setCartItems] = useState({});
+    // eslint-disable-next-line
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -171,32 +172,48 @@ const ShopContextProvider = (props) => {
     });
     const [wishlistItems, setWishlistItems] = useState({});
 
+    // useEffect(() => {
+    //     // Fetch all products
+    //     fetch('http://localhost:4000/allproducts', {
+    //         method: 'GET',
+    //         headers: {
+    //             Accept: 'application/json',
+    //             'auth-token': localStorage.getItem('auth-token'), // Added auth-token here
+    //             'Content-Type': 'application/json',
+    //         },
+    //     })
+    //         .then((response) => response.json())
+    //         .then((data) => {
+    //             // Filter out blocked products and set the state
+    //             const unblockedProducts = data.filter((product) => !product.blocked);
+    //             setAllProduct(unblockedProducts);
+    //         })
+    //         .catch((error) => console.error('Error fetching products:', error));
+    // }, []); // This useEffect runs once on component mount
+    
     useEffect(() => {
-        // Fetch all products
         fetch('http://localhost:4000/allproducts', {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
-                'auth-token': localStorage.getItem('auth-token'), // Added auth-token here
-                'Content-Type': 'application/json'
+                'auth-token': localStorage.getItem('auth-token') || '', // Optional: Include token if available
+                'Content-Type': 'application/json',
             },
         })
             .then((response) => response.json())
             .then((data) => {
-                // console.log('Fetched Products:', data);
-                // setAllProduct(data);
-                const unblockedProducts = data.filter(product => !product.blocked);
+                // Filter out blocked products directly
+                const unblockedProducts = data.filter((product) => !product.blocked);
                 setAllProduct(unblockedProducts);
-
             })
             .catch((error) => console.error('Error fetching products:', error));
+    }, []);
+    
+    
 
-        // Fetch cart data initially
-        if (localStorage.getItem('auth-token')) {
-            fetchCartData();
-        }
 
-        // Fetch wishlist data
+    useEffect(() => {
+        // Fetch wishlist data if auth-token is present
         if (localStorage.getItem('auth-token')) {
             fetch('http://localhost:4000/getwishlist', {
                 method: 'POST',
@@ -209,11 +226,11 @@ const ShopContextProvider = (props) => {
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    console.log('Fetched Wishlist:', data);
                     if (data.success && Array.isArray(data.Wishlist)) {
+                        // Convert wishlist array to an object with boolean flags
                         const wishlistObj = {};
                         data.Wishlist.forEach((item) => {
-                            wishlistObj[item] = true; // Use a boolean to mark items in the wishlist
+                            wishlistObj[item] = true; // Mark items in the wishlist
                         });
                         setWishlistItems(wishlistObj);
                     } else {
@@ -222,8 +239,8 @@ const ShopContextProvider = (props) => {
                 })
                 .catch((error) => console.error('Error fetching wishlist:', error));
         }
-    }, []);
-
+    }, []); // This useEffect runs once on component mount
+    
     const fetchCartData = useCallback(() => {
         fetch('http://localhost:4000/getcart', {
             method: 'GET',
@@ -242,7 +259,6 @@ const ShopContextProvider = (props) => {
             .then((data) => {
                 if (data && data.cartData) {
                     console.log("data:", data, "cartdata", data.cartData);
-
                     setCartItems(data.cartData);
                 } else {
                     console.log('Invalid cart data or cart is empty:', data);
@@ -252,6 +268,14 @@ const ShopContextProvider = (props) => {
                 console.error('Error fetching cart data:', error);
             });
     }, []);
+    
+    useEffect(() => {
+        if (localStorage.getItem('auth-token')) {
+            fetchCartData();
+        }
+    }, [fetchCartData]); // Include fetchCartData in the dependency array
+    
+    
 
     // const login = async () => {
     //     console.log("Login function executed", formData);
@@ -326,6 +350,33 @@ const ShopContextProvider = (props) => {
         }
     };
 
+    // const addToWishlist = (itemId) => {
+    //     // Update the local state to add the item to the wishlist
+    //     const updatedWishlist = { ...wishlistItems, [itemId]: true };
+    //     setWishlistItems(updatedWishlist);
+    
+    //     // Update the local storage to add the item to the wishlist
+    //     localStorage.setItem('wishlistItems', JSON.stringify(updatedWishlist));
+    
+    //     // Send a request to the backend to update the wishlist
+    //     if (localStorage.getItem('auth-token')) {
+    //         fetch('http://localhost:4000/addtowishlist', {
+    //             method: 'POST',
+    //             headers: {
+    //                 Accept: 'application/json',
+    //                 'auth-token': localStorage.getItem('auth-token'),
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: JSON.stringify({ itemId })
+    //         })
+    //             .then((response) => response.json())
+    //             .then((data) => console.log(data))
+    //             .catch((error) => console.error('Error adding to wishlist:', error));
+    //     }
+    // };
+    
+
+
     const deleteFromWishlist = (itemId) => {
         // Update the local state to remove the item from the wishlist
         const updatedWishlist = { ...wishlistItems };
@@ -349,7 +400,7 @@ const ShopContextProvider = (props) => {
                 .then((response) => response.json())
                 .then((data) => console.log(data))
                 .catch((error) => console.error('Error deleting from wishlist:', error));
-            alert("Item removed from wishlist");
+            //alert("Item removed from wishlist");
         }
     };
 

@@ -1,0 +1,410 @@
+<!-- const Navbar = () => {
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+    const toggleSidebar = () => {
+        setSidebarOpen(!isSidebarOpen);
+    };
+
+    const closeSidebar = () => {
+        setSidebarOpen(false);
+    };
+
+    return (
+        <>
+            <div className="navbar">
+                <span className="menu-icon" onClick={toggleSidebar}>&#9776;</span>
+            </div>
+            {isSidebarOpen && <div className="overlay" onClick={closeSidebar}></div>}
+            <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+                <Link to="/" onClick={closeSidebar}>Home</Link>
+                <Link to="/groups" onClick={closeSidebar}>Chat Room</Link>
+                <Link to="/profile" onClick={closeSidebar}>Profile</Link>
+            </div>
+        </>
+    );
+};
+
+export default Navbar;
+
+import React, { useState, useEffect, useContext, useRef } from "react";
+import './Navbar.css';
+import logo from '../Assets/logo.png';
+import cart_icon from '../Assets/cart_icon.png';
+import { Link, useNavigate } from "react-router-dom";
+import { ShopContext } from "../../Context/ShopContext";
+import nav_dropdown from '../Assets/nav_dropdown.png';
+import profileimage from '../Assets/profileimage.png';
+import logoutIcon from '../Assets/logout.png';
+
+const Navbar = () => {
+    const [menu, setMenu] = useState("shop");
+    const { getTotalCartItems } = useContext(ShopContext);
+    const menuRef = useRef();
+     // eslint-disable-next-line
+    const [user, setUser] = useState(null);
+    const [userImage, setUserImage] = useState(profileimage); // Default image
+    const navigate = useNavigate(); // Initialize useNavigate
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const authToken = localStorage.getItem('auth-token');
+
+            if (authToken) {
+                try {
+                    const response = await fetch('http://localhost:4000/user', {
+                        method: 'GET',
+                        headers: {
+                            'auth-token': authToken,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    //console.log("Response headers:", response.headers); // Log response headers
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    console.log("Response from backend:", data);
+
+                    if (data && data.user && data.user.image) {
+                        setUser(data.user); // Set the user object
+                       // console.log("User data in the navbar:", data.user);
+                        setUserImage(data.user.image); // Set the user image
+                       // console.log("User image:", data.user.image);
+                    } else {
+                        console.error('User data fetch unsuccessful: No user image found');
+                    }
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                }
+            }
+        };
+        fetchUserData();
+    }, []);
+
+    const dropdown_toggle = (e) => {
+        menuRef.current.classList.toggle('nav-menu-visible');
+        e.target.classList.toggle('open');
+    };
+
+    const handleCartClick = (e) => {
+        if (!localStorage.getItem('auth-token')) {
+            e.preventDefault();
+            alert("Please login to access the cart.");
+        }
+    };
+
+    const handleProfileClick = () => {
+        navigate('/profile'); // Navigate to the profile page
+    };
+
+    const handleLogout = () => {
+        localStorage.clear(); // Clear all local storage
+        window.location.replace('/');
+    };
+
+    return (
+        <div className="navbar">
+            <div className="nav-logo">
+                <img src={logo} alt="Logo" />
+                <p>SHOPPER</p>
+            </div>
+            <img className="nav-dropdown" onClick={dropdown_toggle} src={nav_dropdown} alt="Menu Toggle" />
+            <ul ref={menuRef} className="nav-menu">
+                <li onClick={() => { setMenu("shop") }}><Link style={{ textDecoration: 'none' }} to='/'>Shop</Link>{menu === "shop" ? <hr /> : <></>}</li>
+                <li onClick={() => { setMenu("mens") }}><Link style={{ textDecoration: 'none' }} to='/mens'>Men</Link>{menu === "mens" ? <hr /> : <></>}</li>
+                <li onClick={() => { setMenu("womens") }}><Link style={{ textDecoration: 'none' }} to='/womens'>Women</Link>{menu === "womens" ? <hr /> : <></>}</li>
+                <li onClick={() => { setMenu("kids") }}><Link style={{ textDecoration: 'none' }} to='/kids'>Kids</Link>{menu === "kids" ? <hr /> : <></>}</li>
+                {localStorage.getItem('auth-token') && (
+                    <li onClick={() => { setMenu("wishlist") }}><Link style={{ textDecoration: 'none' }} to='/wishlist'>Wishlist</Link></li>
+                )}
+            </ul>
+            <div className="nav-login-cart">
+                {localStorage.getItem('auth-token')
+                    ? (
+                        <>
+                            <img 
+                                src={logoutIcon} 
+                                alt="Logout" 
+                                onClick={handleLogout} 
+                                className="logout"
+                                style={{ cursor: 'pointer' }} 
+                            />
+                            <Link style={{ textDecoration: 'none' }} to='/cart' onClick={handleCartClick}><img src={cart_icon} alt="Cart" /></Link>
+                            <div className="nav-cart-count">{getTotalCartItems()}</div>
+                            <div className="profile-image" onClick={handleProfileClick}>
+                                <img src={userImage} alt="Profile" />
+                            </div>
+                        </>
+                    )
+                    : (
+                        <>
+                            <Link style={{ textDecoration: 'none' }} to='/login'><button>Login</button></Link>
+                            <Link style={{ textDecoration: 'none' }} to='/cart' onClick={handleCartClick}><img src={cart_icon} alt="Cart" /></Link>
+                            <div className="nav-cart-count">{getTotalCartItems()}</div>
+                        </>
+                    )
+                }
+            </div>
+        </div>
+    );
+}
+
+export default Navbar; -->
+
+
+
+
+
+
+
+
+.navbar{
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  box-shadow: 0 1px 3px -2px black;
+  align-items: center;
+}
+.nav-logo{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nav-logo p{
+  color: #171717;
+  font-size: 38px;
+  font-weight: 600;
+}
+/* .nav-menu{
+  display: flex;
+  align-items: center;
+  list-style: none;
+  gap: 50px;
+  color: #626262;
+  font-size: 20px;
+  font-weight: 500;
+}
+.nav-menu li{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  } */
+  .nav-menu hr{
+      border: none;
+      width: 80%;
+      height: 3px;
+      border-radius: 10px;
+      background: #ff4141;
+  }
+.nav-login-cart{
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+.nav-login-cart button{
+  width: 157px;
+  height: 58px;
+  outline: none;
+  border: 1px solid #7a7a7a;
+  border-radius: 75px;
+  color: #515151;
+  font-size: 20px;
+  font-weight: 500;
+  background: white;
+  cursor: pointer;
+}
+.nav-login-cart button:active{
+  background: #f3f3f3;
+}
+.nav-cart-count{
+  width: 22px;
+  height: 22px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -35px;
+  margin-left: -45px;
+  border-radius: 11px;
+  font-size: 14px;
+  background: red;
+  color: white;
+}
+.nav-dropdown{
+  display: none;
+}
+/* .profile-image{
+  width: 40px;
+  aspect-ratio: 1/1;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  border-radius: 999px;
+  border: 2px solid rgb(211, 209, 209);
+  align-items: center;
+  justify-content: center;
+  margin: auto 0px auto 0px;
+} */
+.profile-image img{
+  object-fit: cover;
+  border-radius: 999px;
+  width: 45px;
+  aspect-ratio: 1/1;
+  /* margin-right: 20px; */
+  border: 2px solid rgb(158, 154, 154);
+}
+.logout{
+  width: 40px;
+}
+
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background-color: #444;
+  color: rgb(0, 0, 0);
+  position: fixed;
+  top: -30px;
+  left: -250px;
+  transition: left 0.3s ease-in-out;
+  padding-top: 20px;
+  z-index: 2;
+}
+
+.sidebar ul{
+  list-style: none;
+}
+
+.sidebar a {
+  display: block;
+  color: rgb(0, 0, 0);
+  padding: 10px 20px;
+  text-decoration: none;
+}
+
+.sidebar a:hover {
+  background-color: #555;
+}
+
+.sidebar.open {
+  left: 0;
+  text-align: left;
+  background-color: rgba(255, 255, 255, 0.686);
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+
+@media(max-width:1280px){
+  .navbar{
+      padding: 12px 50px;
+  }
+  .nav-logo img{
+      width: 40px;
+  }
+  .nav-logo p{
+      font-size: 25px;
+  }
+  /* .nav-menu{
+      gap: 30px;
+      font-size: 16px;
+  } */
+  .nav-login-cart{
+      gap: 30px;
+  }
+  .nav-login-cart button{
+      width: 120px;
+      height: 45px;
+      font-size: 16px;
+  }
+  .nav-cart-count{
+      margin-left: -40px;
+      font-size: 12px;
+  }
+}
+@media(max-width:1024px){
+  .navbar{
+      padding: 12px 30px;
+  }
+  /* .nav-menu{
+      gap:25px;
+      font-size: 14px;
+  } */
+  .nav-login-cart button{
+      width: 80px;
+      height: 35px;
+      font-size: 14px;
+  }
+  .nav-login-cart img{
+      width: 30px;
+  }
+  .nav-cart-count{
+      width: 18px;
+      height: 18px;
+  }
+  
+}
+@media(max-width:800px){
+  .navbar{
+      padding: 10px 0px;
+  }
+  /* .nav-dropdown{
+      display: block;
+      width: 30px;
+      transform: rotate(-90deg);
+      transition: 0.5s;
+  } */
+  /* .nav-menu{
+      display: none;
+      height: 80px;
+      width: 100%;
+      position: absolute;
+      background-color: white;
+      justify-content: center;
+      top: 50px;
+  }
+  .nav-menu-visible{
+      display: flex;
+  }
+  .nav-dropdown.open{
+      transform: rotate(0deg);
+
+  } */
+}
+@media(max-width:500px){
+  .navbar{
+      padding: 8px 0px;
+      gap: 0;
+  }
+  .nav-logo{
+      transform: scale(0.8);
+  }
+  /* .nav-menu{
+      margin-top: 10px;
+      height: auto;
+      top: 50px;
+  }
+  .nav-menu-visible{
+      display: flex;
+      flex-direction: column;
+  } */
+  .nav-login-cart{
+      transform: scale(0.8);
+  }
+  .profile-image{
+      width: 30px;
+  }
+  .nav-dropdown{
+      width: 20px;
+  }
+}

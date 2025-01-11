@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Address = require('./Adress');
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
@@ -18,17 +19,23 @@ const userSchema = new Schema({
     },
     user_type: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User_type", 
+        ref: "User_type",
     },
-    blocked: { // New field to track block status
+    blocked: {
         type: Boolean,
-        default: false
+        default: false,
     },
     order_history: [{ type: Schema.Types.ObjectId, ref: 'OrderHistory' }],
+    orders: [{ type: Schema.Types.ObjectId, ref: 'Order' }],
+    Address: { // New field to link billing
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Address', // Reference to the Adress schema
+    },
 });
 
 const Users = mongoose.model('Users', userSchema);
 module.exports = Users;
+
 
 
 
