@@ -511,7 +511,7 @@
 //         const shippingFee = subtotal < 1000 ? 50.00 : 0.00;
 //         return subtotal + shippingFee;
 //     };
-    
+
 
 //     const handleInputChange = (e, setFunction) => {
 //         const { name, value } = e.target;
@@ -746,8 +746,16 @@ const CheckoutPage = () => {
 
     const handleSelectAddress = (address) => {
         setSelectedAddress(address);
-        setBillingInfo(address); // Autofill the form with selected address
-    };
+        setBillingInfo({
+            fullname: address.fullname || '',
+            email: address.email || '',
+            phone: address.phone || '',
+            city: address.city || '',
+            state: address.state || '',
+            postal: address.postalCode || '',
+            country: address.country || ''
+        });
+    };    
 
     const fetchAddresses = async () => {
         try {
@@ -759,7 +767,7 @@ const CheckoutPage = () => {
                 },
                 body: JSON.stringify()
             });
-    
+
             if (response.ok) {
                 const data = await response.json();
                 setAddresses(data.addresses);
@@ -769,7 +777,7 @@ const CheckoutPage = () => {
         } catch (error) {
             console.error('Error:', error);
         }
-    };    
+    };
 
     const handlePlaceOrder = async () => {
         const orderProducts = cartProducts.map(product => ({
@@ -777,7 +785,7 @@ const CheckoutPage = () => {
             id: product.id,
             quantity: isDirectPurchase ? 1 : cartItems[product.id],
             new_price: product.new_price
-        }));        
+        }));
         console.log("Order Products:", orderProducts);
 
 
@@ -879,13 +887,18 @@ const CheckoutPage = () => {
                     <h3>Select an Address</h3>
                     {addresses.length > 0 ? (
                         <ul>
-                            {addresses.map((address, index) => (
-                                <li key={index} onClick={() => handleSelectAddress(address)}>
-                                    <p>{address.fullname}, {address.email}, {address.phone}</p>
-                                    <p>{address.city}, {address.state}, {address.postalCode}, {address.country}</p>
-                                </li>
-                            ))}
-                        </ul>
+                        {addresses.map((address, index) => (
+                            <li
+                                key={index}
+                                onClick={() => handleSelectAddress(address)}
+                                className={selectedAddress === address ? 'selected-address' : ''}
+                                style={{ cursor: 'pointer' }}  // Added cursor pointer style
+                            >
+                                <p>{address.fullname}, {address.email}, {address.phone}</p>
+                                <p>{address.city}, {address.state}, {address.postalCode}, {address.country}</p>
+                            </li>
+                        ))}
+                    </ul>                                        
                     ) : (
                         <p>No saved addresses. Add a new one below.</p>
                     )}
@@ -898,7 +911,7 @@ const CheckoutPage = () => {
                             type="text"
                             id="fullname"
                             name="fullname"
-                            value={billingInfo.fullname}
+                            value={billingInfo.fullname || ''}
                             onChange={handleInputChange}
                             required
                         />
@@ -909,7 +922,7 @@ const CheckoutPage = () => {
                             type="email"
                             id="email"
                             name="email"
-                            value={billingInfo.email}
+                            value={billingInfo.email || ''}
                             onChange={handleInputChange}
                             required
                         />
@@ -920,7 +933,7 @@ const CheckoutPage = () => {
                             type="tel"
                             id="phone"
                             name="phone"
-                            value={billingInfo.phone}
+                            value={billingInfo.phone || ''}
                             onChange={handleInputChange}
                             required
                         />
@@ -931,7 +944,7 @@ const CheckoutPage = () => {
                             type="text"
                             id="city"
                             name="city"
-                            value={billingInfo.city}
+                            value={billingInfo.city || ''}
                             onChange={handleInputChange}
                             required
                         />
@@ -942,7 +955,7 @@ const CheckoutPage = () => {
                             type="text"
                             id="state"
                             name="state"
-                            value={billingInfo.state}
+                            value={billingInfo.state || ''}
                             onChange={handleInputChange}
                             required
                         />
@@ -953,7 +966,7 @@ const CheckoutPage = () => {
                             type="text"
                             id="postal"
                             name="postal"
-                            value={billingInfo.postal}
+                            value={billingInfo.postal || ''}
                             onChange={handleInputChange}
                             required
                         />
@@ -964,7 +977,7 @@ const CheckoutPage = () => {
                             type="text"
                             id="country"
                             name="country"
-                            value={billingInfo.country}
+                            value={billingInfo.country || ''}
                             onChange={handleInputChange}
                             required
                         />

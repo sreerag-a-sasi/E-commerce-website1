@@ -330,13 +330,11 @@ const LoginSignup = () => {
 
 
     const signup = async () => {
-        //console.log("Signup function executed", formData);
-
         if (!image) {
             alert("No image selected. Proceeding without image.");
         } else {
             const imageResponse = await uploadSingleImage(image);
-
+    
             if (imageResponse.success) {
                 formData.image = imageResponse.image_url; // Assuming the response contains the uploaded image URL
             } else {
@@ -344,7 +342,7 @@ const LoginSignup = () => {
                 return;
             }
         }
-
+    
         let responseData;
         await fetch('http://localhost:4000/signup', {
             method: 'POST',
@@ -353,20 +351,35 @@ const LoginSignup = () => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(formData),
-        }).then((response) => response.json()).then((data) => responseData = data);
-
-        if (responseData.success) {
+        })
+            .then((response) => response.json())
+            .then((data) => responseData = data)
+            .catch((error) => {
+                console.error("Error during signup:", error);
+                alert("An error occurred while signing up. Please try again later.");
+                return;
+            });
+    
+        if (responseData && responseData.success) {
             localStorage.setItem('auth-token', responseData.token);
-            alert('Login successful!');
-            if (responseData.user && responseData.user.user_type === '676c07e68c1c6815439b181c' && '676c07f88c1c6815439b181e') { // Replace with actual Admin user type ID
+            alert('Signup successful!');
+            if (responseData.user &&
+                (responseData.user.user_type === '676c07e68c1c6815439b181c' || responseData.user.user_type === '676c07f88c1c6815439b181e')) { // Replace with actual Admin user type ID
                 window.location.replace("/Admin/addproduct");
             } else {
                 window.location.replace("/");
             }
+        } else if (responseData && responseData.message === "Invalid email ID") {
+            // Specific error handling for invalid email ID
+            alert("The provided email is invalid. Please enter a valid email address and try again.");
+        } else if (responseData && responseData.message === "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.") {
+            // Specific error handling for invalid password
+            alert("The provided password is invalid. Ensure it is at least 8 characters long and includes an uppercase letter, a lowercase letter, a number, and a special character.");     
         } else {
-            alert(responseData.errors);
+            // General error handling
+            alert(responseData.errors || "Signup failed. Please try again.");
         }
-    };
+    };        
 
     return (
         <div className="loginsignup">
@@ -388,6 +401,7 @@ const LoginSignup = () => {
                     )}
                     <input name="email" value={formData.email} onChange={changeHandler} type="email" placeholder="Email Address" />
                     <input name="password" value={formData.password} onChange={changeHandler} type="password" placeholder="Password" />
+                    {state === "Sign Up" ? <p>Ensure the password is at least 8 characters long and includes an uppercase letter, a lowercase letter, a number, and a special character.</p>: ''}
                 </div>
                 <button onClick={() => { state === "Login" ? login() : signup() }} >Continue</button>
                 {state === "Sign Up" ? <p className="loginsignup-login">Already have an account? <span onClick={() => { setState("Login") }} >Login here</span></p> : <p className="loginsignup-login">Create an account? <span onClick={() => { setState("Sign Up") }} >Click here</span></p>}

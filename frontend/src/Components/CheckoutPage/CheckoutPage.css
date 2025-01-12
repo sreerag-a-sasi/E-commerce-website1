@@ -92,6 +92,12 @@ button:hover {
     font-family: 'Times New Roman', Times, serif;
 
 }
+.selected-address {
+    background-color: #f0f8ff;
+    border: 1px solid #007bff;
+    padding: 8px;
+    border-radius: 5px;
+}
 
 /* Media Queries for Responsiveness */
 

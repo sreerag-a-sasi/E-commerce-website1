@@ -32,6 +32,11 @@ const orderHistorySchema = new Schema({
         postal: { type: String, required: true },
         country: { type: String, required: true }
     },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,  // Ensure it's a valid ObjectId
+        ref: 'Users',  // Reference to the User collection
+        required: true,  // User is required
+    },
 });
 
 const OrderHistory = mongoose.model('OrderHistory', orderHistorySchema);

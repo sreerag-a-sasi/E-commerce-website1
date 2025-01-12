@@ -554,8 +554,24 @@ app.post('/signup', async (req, res) => {
             user_type: req.body.user_type
         });
 
+        // Updated email regex for stricter validation
+        const emailRegex = /^[a-zA-Z0-9._%+-]{3,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/;
+        if (!emailRegex.test(req.body.email)) {
+            console.error("Invalid email ID:", req.body.email);
+            return res.status(400).send({ message: "Invalid email ID" });
+        }
+
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        const password = req.body.password;
+
+        if (!passwordRegex.test(password)) {
+            console.error("Invalid password:", password);
+            return res.status(400).send({ message: "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character." });
+        }
+
         // Save user to database
         await user.save();
+
         // Generate JWT token
         const token = jwt.sign({ user_id: user._id }, secretKey, { expiresIn: "10d" });
 
@@ -621,7 +637,6 @@ app.post('/login', async (req, res) => {
     }
 });
 
-
 app.post('/toggleblockuser', async (req, res) => {
     try {
         const { id, blocked } = req.body;
@@ -648,7 +663,6 @@ app.post('/toggleblockuser', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
-
 
 app.post('/toggleblockproduct', async (req, res) => {
     try {
@@ -689,9 +703,6 @@ app.post('/toggleblockproduct', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
-
-
-
 
 app.post('/updateuser', async (req, res) => {
     try {
@@ -935,7 +946,7 @@ app.get('/allproducts', async (req, res) => {
                         email_template
                     );
                     console.log('Email Result:', emailResult);
-                    
+
                     if (emailResult.success) {
                         console.log(`Email sent successfully to ${recipientEmail}`);
                         await Product.findByIdAndUpdate(product._id, { message_sent: true });
@@ -943,7 +954,7 @@ app.get('/allproducts', async (req, res) => {
                         console.error(
                             `Failed to send email to ${recipientEmail}. Error: ${emailResult.error || 'Unknown error'}`
                         );
-                    }                    
+                    }
                 } catch (emailError) {
                     console.error(`Error processing product ${product.name}:`, emailError);
                 }
@@ -954,8 +965,6 @@ app.get('/allproducts', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
-
-
 
 app.get('/allusers', async (req, res) => {
     try {
@@ -1010,7 +1019,6 @@ app.post('/removeuser', async (req, res) => {
         res.status(500).send({ success: false, message: "Error removing user" });
     }
 });
-
 
 // app.get('/newcollections', async (req, res) => {
 //     try {
@@ -1106,9 +1114,6 @@ app.get('/relatedproducts', async (req, res) => {
     }
 });
 
-
-
-
 app.get('/getcart', fetchUser, async (req, res) => {
     try {
         const userData = await Users.findById(req.user.user_id);
@@ -1123,7 +1128,6 @@ app.get('/getcart', fetchUser, async (req, res) => {
         res.status(500).json({ message: "Error fetching cart data" });
     }
 });
-
 
 app.post('/getwishlist', fetchUser, async (req, res) => {
     try {
@@ -1615,10 +1619,6 @@ app.post('/deletefromcart', fetchUser, async (req, res) => {
 // });
 
 
-
-
-
-
 // app.post('/placeOrder', fetchUser, async (req, res) => {
 //     try {
 //         const { products } = req.body;
@@ -1664,7 +1664,6 @@ app.post('/deletefromcart', fetchUser, async (req, res) => {
 //         res.status(500).json({ message: "Error placing order", error: error.message });
 //     }
 // });
-
 
 // Route to place an order
 // app.post('/placeOrder', fetchUser, async (req, res) => {
@@ -1714,6 +1713,88 @@ app.post('/deletefromcart', fetchUser, async (req, res) => {
 //         res.status(500).json({ message: "Error placing order", error: error.message });
 //     }
 // });
+
+// app.post('/placeOrder', fetchUser, async (req, res) => {
+//     try {
+//         const { products, billingInfo } = req.body;
+
+//         if (!products || products.length === 0) {
+//             return res.status(400).json({ message: "No products to place order" });
+//         }
+
+//         const userId = req.user.user_id; // Assuming the user's _id is decoded in the JWT
+
+//         // Ensure ObjectId casting with _id for product updates
+//         const updateOperations = products.map(product => ({
+//             updateOne: {
+//                 filter: { _id: product._id },
+//                 update: { $inc: { available: -product.quantity } } // Decrease available stock
+//             }
+//         }));
+
+//         await Product.bulkWrite(updateOperations);
+
+//         const user = await Users.findById(userId);
+//         if (!user) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         // Ensure billingInfo contains all required fields
+//         if (!billingInfo || !billingInfo.postalCode || !billingInfo.fullname || !billingInfo.email) {
+//             return res.status(400).json({ message: "Billing information is incomplete" });
+//         }
+
+//         // Check if the user already has an address
+//         let userAddress = await Address.findOne({ user: userId });
+//         if (!userAddress) {
+//             // Create a new address if none exists
+//             const newAddress = new Address({
+//                 fullname: billingInfo.fullname,
+//                 email: billingInfo.email,
+//                 phone: billingInfo.phone,
+//                 city: billingInfo.city,
+//                 state: billingInfo.state,
+//                 postalCode: billingInfo.postalCode,
+//                 country: billingInfo.country,
+//                 user: userId  // Link the address to the user
+//             });
+
+//             userAddress = await newAddress.save();
+//         }
+
+//         // Prepare order history entries
+//         const orderHistoryEntries = products.map(product => ({
+//             product: product._id, // ObjectId reference for product
+//             quantity: product.quantity,
+//             totalPrice: product.new_price * product.quantity,
+//             billingInfo: {
+//                 fullname: billingInfo.fullname,
+//                 email: billingInfo.email,
+//                 phone: billingInfo.phone,
+//                 city: billingInfo.city,
+//                 state: billingInfo.state,
+//                 postal: billingInfo.postalCode,
+//                 country: billingInfo.country
+//             },
+//             userAddress: userAddress._id, // Add address reference
+//             user:userId,
+//         }));
+
+//         // Create OrderHistory entries
+//         const orderHistoryDocs = await OrderHistory.insertMany(orderHistoryEntries);
+
+//         // Add Order History references to the user
+//         user.order_history.push(...orderHistoryDocs.map(doc => doc._id));
+//         await user.save();
+
+//         res.status(200).json({ message: "Order placed successfully" });
+//     } catch (error) {
+//         console.error("Error placing order:", error);
+//         res.status(500).json({ message: "Error placing order", error: error.message });
+//     }
+// });
+// 
+
 app.post('/placeOrder', fetchUser, async (req, res) => {
     try {
         const { products, billingInfo } = req.body;
@@ -1739,22 +1820,33 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
+        console.log("billing info : ", billingInfo);
         // Ensure billingInfo contains all required fields
-        if (!billingInfo || !billingInfo.postalCode || !billingInfo.fullname || !billingInfo.email) {
+        if (!billingInfo || !billingInfo.postal || !billingInfo.fullname || !billingInfo.email) {
             return res.status(400).json({ message: "Billing information is incomplete" });
         }
 
-        // Check if the user already has an address
-        let userAddress = await Address.findOne({ user: userId });
+        // Check if the user already has an address that matches the billing info
+        let userAddress = await Address.findOne({
+            user: userId,
+            fullname: billingInfo.fullname,
+            email: billingInfo.email,
+            phone: billingInfo.phone,
+            city: billingInfo.city,
+            state: billingInfo.state,
+            postalCode: billingInfo.postal,
+            country: billingInfo.country
+        });
+
+        // If no matching address is found, create a new one
         if (!userAddress) {
-            // Create a new address if none exists
             const newAddress = new Address({
                 fullname: billingInfo.fullname,
                 email: billingInfo.email,
                 phone: billingInfo.phone,
                 city: billingInfo.city,
                 state: billingInfo.state,
-                postalCode: billingInfo.postalCode,
+                postalCode: billingInfo.postal,
                 country: billingInfo.country,
                 user: userId  // Link the address to the user
             });
@@ -1767,16 +1859,17 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
             product: product._id, // ObjectId reference for product
             quantity: product.quantity,
             totalPrice: product.new_price * product.quantity,
-            billingInfo: { 
+            billingInfo: {
                 fullname: billingInfo.fullname,
                 email: billingInfo.email,
                 phone: billingInfo.phone,
                 city: billingInfo.city,
                 state: billingInfo.state,
-                postal: billingInfo.postalCode,
+                postal: billingInfo.postal,
                 country: billingInfo.country
             },
-            userAddress: userAddress._id // Add address reference
+            userAddress: userAddress._id, // Add address reference
+            user: userId,
         }));
 
         // Create OrderHistory entries
@@ -1793,15 +1886,6 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
     }
 });
 
-
-
-
-
-
-
-
-
-
 // Fetch all addresses for the authenticated user
 app.get('/getAddresses', fetchUser, async (req, res) => {
     try {
@@ -1817,6 +1901,37 @@ app.get('/getAddresses', fetchUser, async (req, res) => {
 
 
 // Add a new address for the authenticated user
+// app.post('/addAddress', fetchUser, async (req, res) => {
+//     try {
+//         const { fullname, email, phone, city, state, postalCode, country } = req.body;
+//         const userId = req.user.user_id; // Get the user ID from the decoded JWT token
+
+//         // Validate the required fields for the address
+//         if (!fullname || !email || !phone || !city || !state || !postalCode || !country) {
+//             return res.status(400).json({ message: "All address fields are required" });
+//         }
+
+//         // Create a new address document
+//         const newAddress = new Address({
+//             fullname,
+//             email,
+//             phone,
+//             city,
+//             state,
+//             postalCode,
+//             country,
+//             user: userId // Link address to the user
+//         });
+
+//         // Save the new address
+//         await newAddress.save();
+
+//         res.status(201).json({ message: 'Address added successfully', address: newAddress });
+//     } catch (err) {
+//         console.error("Error adding address:", err);
+//         res.status(500).json({ message: 'Error adding address', error: err.message });
+//     }
+// });
 app.post('/addAddress', fetchUser, async (req, res) => {
     try {
         const { fullname, email, phone, city, state, postalCode, country } = req.body;
@@ -1825,6 +1940,23 @@ app.post('/addAddress', fetchUser, async (req, res) => {
         // Validate the required fields for the address
         if (!fullname || !email || !phone || !city || !state || !postalCode || !country) {
             return res.status(400).json({ message: "All address fields are required" });
+        }
+
+        // Check if the same address already exists for the user
+        const existingAddress = await Address.findOne({
+            user: userId,
+            fullname,
+            email,
+            phone,
+            city,
+            state,
+            postalCode,
+            country
+        });
+
+        // If the address exists, skip adding and send the existing address
+        if (existingAddress) {
+            return res.status(200).json({ message: 'Address already exists', address: existingAddress });
         }
 
         // Create a new address document
@@ -1850,14 +1982,6 @@ app.post('/addAddress', fetchUser, async (req, res) => {
 });
 
 
-
-
-
-
-
-
-
-
 // Get Order History Endpoint
 app.get('/getOrderHistory', fetchUser, async (req, res) => {
     try {
@@ -1879,6 +2003,59 @@ app.get('/getOrderHistory', fetchUser, async (req, res) => {
     } catch (error) {
         console.error("Error fetching order history:", error);
         res.status(500).json({ message: "Error fetching order history", error: error.message });
+    }
+});
+
+// app.get('/orderhistory/:productId', async (req, res) => {
+//     try {
+//         const { productId } = req.params;
+//         // Find the order history for the product
+//         const orderHistory = await OrderHistory.find({ product: productId }).populate('product user');
+        
+//         if (orderHistory.length === 0) {
+//             return res.status(404).json({ message: 'No order history found for this product' });
+//         }
+        
+//         res.status(200).json(orderHistory);
+//     } catch (error) {
+//         console.error('Error fetching order history:', error);
+//         res.status(500).json({ message: 'Error fetching order history' });
+//     }
+// });
+
+
+app.get('/orderhistory/:productId', async (req, res) => {
+    try {
+        const { productId } = req.params;
+
+        // Find the order history for the product and populate product and user
+        const orderHistory = await OrderHistory.find({ product: productId })
+            .populate('product') // Populate product details from the Product model
+            .populate('user'); // Populate user details from the User model
+        
+        if (orderHistory.length === 0) {
+            return res.status(404).json({ message: 'No order history found for this product' });
+        }
+
+        // Optionally, you can map over the orderHistory to return a custom response
+        const result = orderHistory.map(order => ({
+            _id: order._id,
+            quantity: order.quantity,
+            totalPrice: order.totalPrice,
+            shipped: order.shipped,
+            billingInfo: order.billingInfo,
+            user: {
+                name: order.user.name,
+                email: order.user.email,
+                phone:order.user.phone
+                // Add any other user fields you want to return
+            }
+        }));
+
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error fetching order history:', error);
+        res.status(500).json({ message: 'Error fetching order history' });
     }
 });
 
