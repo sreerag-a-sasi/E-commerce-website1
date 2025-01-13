@@ -2185,21 +2185,85 @@ app.post('/clearcart', fetchUser, async (req, res) => {
 
 
 // Endpoint to fetch all orders for the authenticated user
+// app.get('/orders', fetchUser, async (req, res) => {
+//     try {
+//         // Fetch orders for the authenticated user
+//         const userId = req.user.user_id; // Assuming fetchUser adds `user_id` to req.user
+//         const userOrders = await OrderHistory.find({ user: userId })
+//             .populate('product', 'name image') // Populate product details (name, image)
+//             .sort({ date: -1 }); // Sort by date in descending order
+
+//         if (!userOrders || userOrders.length === 0) {
+//             return res.status(400).json({ message: 'No orders found for this user.' });
+//         }
+
+//         // Format the response data
+//         const orders = userOrders.map((order) => ({
+//             id: order._id,
+//             product: {
+//                 id: order.product._id,
+//                 name: order.product.name,
+//                 image: order.product.image[0], // Assuming `image` is an array
+//             },
+//             quantity: order.quantity,
+//             totalPrice: order.totalPrice,
+//             shipped: order.shipped ? 'Shipped' : 'Pending', // Convert boolean to status
+//             date: order.date,
+//             billingInfo: order.billingInfo, // Include billing info if needed
+//         }));
+
+//         res.status(200).json({ orders });
+//     } catch (error) {
+//         console.error('Error fetching orders:', error);
+//         res.status(500).json({ message: 'Server error while fetching orders.' });
+//     }
+// });
+
+
 app.get('/orders', fetchUser, async (req, res) => {
     try {
-        // Fetch orders for the authenticated user
-        const userId = req.user.user_id; // Assuming fetchUser adds `user_id` to req.user
-        const userOrders = await OrderHistory.find({ user: userId })
-            .populate('product', 'name image') // Populate product details (name, image)
-            .sort({ date: -1 }); // Sort by date in descending order
+        // Fetch the user's details, including their user_type
+        const user = await Users.findById(req.user.user_id)
+            .select('_id user_type') // Only fetch _id and user_type
+            .populate('user_type'); // Populate user_type for role checking
 
-        if (!userOrders || userOrders.length === 0) {
-            return res.status(400).json({ message: 'No orders found for this user.' });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log("user type : ",user.user_type);
+        
+        const isAdmin = user.user_type.user_type === 'Admin'; // Assuming user_type has a 'name' field for roles
+
+        let orders;
+
+        if (isAdmin) {
+            // Admin: Fetch all orders
+            orders = await OrderHistory.find({})
+                .populate('user', 'name email') // Populate user details
+                .populate('product', 'name image') // Populate product details
+                .sort({ date: -1 }); // Sort by date in descending order
+        } else {
+            // Regular user: Fetch their own orders
+            orders = await OrderHistory.find({ user: user._id })
+                .populate('product', 'name image') // Populate product details
+                .sort({ date: -1 }); // Sort by date in descending order
+        }
+
+        if (!orders || orders.length === 0) {
+            return res.status(400).json({ message: 'No orders found.' });
         }
 
         // Format the response data
-        const orders = userOrders.map((order) => ({
+        const formattedOrders = orders.map((order) => ({
             id: order._id,
+            user: isAdmin
+                ? {
+                    id: order.user._id,
+                    name: order.user.name,
+                    email: order.user.email,
+                }
+                : undefined, // Include user details only for admin
             product: {
                 id: order.product._id,
                 name: order.product.name,
@@ -2209,15 +2273,16 @@ app.get('/orders', fetchUser, async (req, res) => {
             totalPrice: order.totalPrice,
             shipped: order.shipped ? 'Shipped' : 'Pending', // Convert boolean to status
             date: order.date,
-            billingInfo: order.billingInfo, // Include billing info if needed
+            billingInfo: order.billingInfo, // Include billing info
         }));
 
-        res.status(200).json({ orders });
+        res.status(200).json({ orders: formattedOrders });
     } catch (error) {
         console.error('Error fetching orders:', error);
         res.status(500).json({ message: 'Server error while fetching orders.' });
     }
 });
+
 
 // Cancel order endpoint
 app.delete('/orders/:id', fetchUser, async (req, res) => {
