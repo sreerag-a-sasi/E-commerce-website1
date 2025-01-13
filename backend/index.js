@@ -312,7 +312,7 @@ dotenv.config();
 const secretKey = process.env.PRIVATE_KEY;
 
 // Debug: Verify secret key
-console.log('Loaded Secret Key:', secretKey);
+//console.log('Loaded Secret Key:', secretKey);
 
 // Middleware setup
 app.use(express.json());
