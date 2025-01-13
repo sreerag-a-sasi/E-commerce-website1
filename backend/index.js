@@ -2200,7 +2200,30 @@ app.get('/orders', fetchUser, async (req, res) => {
     }
 });
 
-
+// Cancel order endpoint
+app.delete('/orders/:id', fetchUser, async (req, res) => {
+    try {
+      const userId = req.user.user_id; // Assuming fetchUser adds `user_id` to req.user
+      const orderId = req.params.id;
+  
+      // Find the order to ensure it belongs to the authenticated user
+      const order = await OrderHistory.findOne({ _id: orderId, user: userId });
+  
+      if (!order) {
+        return res.status(404).json({ message: 'Order not found or unauthorized.' });
+      }
+  
+      // Delete the order
+      await OrderHistory.findByIdAndDelete(orderId);
+  
+      res.status(200).json({ message: 'Order canceled successfully.' });
+    } catch (error) {
+      console.error('Error canceling order:', error);
+      res.status(500).json({ message: 'Server error while canceling order.' });
+    }
+  });
+  
+  
 
 // Fetch products added by a specific seller
 app.get('/products/seller/:userId', async (req, res) => {

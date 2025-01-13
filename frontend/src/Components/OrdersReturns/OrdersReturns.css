@@ -1,140 +1,159 @@
 /* General styling for the orders and returns page */
 .orders-returns {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-  }
-  
-  /* Page title styling */
-  .orders-returns h1 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-  }
-  
-  /* Container for all orders */
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+}
+
+/* Page title styling */
+.orders-returns h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Container for all orders */
+.orders-container {
+  display: grid;
+  gap: 20px;
+}
+
+/* Individual order card styling */
+.order-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.order-item:hover {
+  transform: scale(1.02);
+}
+
+/* Order summary styling */
+.order-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Product image styling */
+.product-image {
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  background-color: #555;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+.product-image img {
+  height: 200px;
+  object-fit: contain;
+}
+
+/* Text styling for the order details */
+.order-summary p {
+  margin: 0;
+  color: #555;
+}
+
+.order-summary p strong {
+  color: #333;
+}
+
+/* Billing info section */
+.billing-info {
+  list-style: none;
+  padding: 0;
+  margin-top: 15px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+.billing-info li {
+  margin-bottom: 8px;
+  color: #555;
+}
+
+#cancel {
+  width: 100%;
+  height: 2.3em;
+  background-color: rgb(255, 255, 255);
+  color: rgb(0, 0, 0);
+  font-family: "Neuton", serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 1.3em;
+  border: 1px solid red;
+  border-radius: 10px;
+}
+#cancel:hover{
+  background-color: #c9c9c9;
+  cursor: pointer;
+}
+
+/* Responsive grid for orders */
+@media (min-width: 800px) {
   .orders-container {
-    display: grid;
-    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  /* Individual order card styling */
+}
+
+@media (max-width: 799px) {
+  .orders-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 500px) {
+  .orders-returns {
+    padding: 10px;
+  }
+
   .order-item {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    padding: 10px;
   }
-  
-  .order-item:hover {
-    transform: scale(1.02);
-  }
-  
-  /* Order summary styling */
-  .order-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  /* Product image styling */
+
   .product-image {
-    width: 100%;
-    height: auto;
-    max-height: 200px;
-    object-fit: contain;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    background-color: #555;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    align-content: center;
-    justify-content: center;
+    max-height: 150px;
   }
-  .product-image img{
-    height: 200px;
-    object-fit: contain;
+
+  .product-image img {
+    height: 150px;
   }
-  /* Text styling for the order details */
+
   .order-summary p {
-    margin: 0;
-    color: #555;
+    font-size: 14px;
   }
-  
-  .order-summary p strong {
-    color: #333;
-  }
-  
-  /* Billing info section */
-  .billing-info {
-    list-style: none;
-    padding: 0;
-    margin-top: 15px;
-    border-top: 1px solid #eee;
-    padding-top: 10px;
-  }
-  
+
   .billing-info li {
-    margin-bottom: 8px;
-    color: #555;
+    font-size: 14px;
   }
-  
-  /* Responsive grid for orders */
-  @media (min-width: 800px) {
-    .orders-container {
-      grid-template-columns: repeat(2, 1fr);
-    }
+}
+
+/* Very small screens (300px and below) */
+@media (max-width: 300px) {
+  .orders-returns h1 {
+    font-size: 20px;
   }
-  
-  @media (max-width: 799px) {
-    .orders-container {
-      grid-template-columns: 1fr;
-    }
+
+  .order-summary p {
+    font-size: 12px;
   }
-  
-  /* Responsive adjustments for small screens */
-  @media (max-width: 500px) {
-    .orders-returns {
-      padding: 10px;
-    }
-  
-    .order-item {
-      padding: 10px;
-    }
-  
-    .product-image {
-      max-height: 150px;
-    }
-  
-    .product-image img{
-        height: 150px;
-    }
-    .order-summary p {
-      font-size: 14px;
-    }
-  
-    .billing-info li {
-      font-size: 14px;
-    }
+
+  .billing-info li {
+    font-size: 12px;
   }
-  
-  /* Very small screens (300px and below) */
-  @media (max-width: 300px) {
-    .orders-returns h1 {
-      font-size: 20px;
-    }
-  
-    .order-summary p {
-      font-size: 12px;
-    }
-  
-    .billing-info li {
-      font-size: 12px;
-    }
-  }
-  
+}
