@@ -16,6 +16,7 @@ import ProductDisplay from './Components/ProductDisplay/ProductDisplay';
 import ProfilePage from './Components/Profile/ProfilePage';
 import Wishlist from './Components/Wishlist/Wishlist';
 import CheckoutPage from './Components/CheckoutPage/CheckoutPage';
+import OrdersReturns from './Components/OrdersReturns/OrdersReturns';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path='/ordersreturns' element={<OrdersReturns/>} />
         </Routes>
         <Footer />
       </BrowserRouter>

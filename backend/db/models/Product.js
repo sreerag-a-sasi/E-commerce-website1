@@ -89,7 +89,7 @@ const productSchema = new Schema({
         type: String,
         required: true,
     },
-    added_by: String,
+    added_by: { type: Schema.Types.ObjectId, ref: 'Users' },
     seller: String,
     blocked: { // New field to track block status
         type: Boolean,

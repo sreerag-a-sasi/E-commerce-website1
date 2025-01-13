@@ -647,6 +647,13 @@ const Navbar = () => {
                                     <Link style={{ textDecoration: 'none' }} to='/wishlist'>Wishlist</Link>
                                 </li>
                             )}
+                            {localStorage.getItem('auth-token') && (
+                                <li
+                                    onClick={() => { setMenu("ordersreturns") }}
+                                    style={{ backgroundColor: menu === "ordersreturns" ? 'red' : 'transparent' }}>
+                                    <Link style={{ textDecoration: 'none' }} to='/ordersreturns'>Orders & Returns</Link>
+                                </li>
+                            )}
                         </ul>
                     </div>
                 </div>}

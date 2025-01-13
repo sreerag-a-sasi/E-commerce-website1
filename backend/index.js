@@ -911,7 +911,6 @@ app.get('/allproducts', async (req, res) => {
             // No token provided; show only unblocked products
             products = await Product.find({ blocked: { $ne: true } });
         }
-
         res.json(products);
 
         // Handle out-of-stock products for authenticated users with token
@@ -1459,7 +1458,9 @@ app.post('/addfromcart', fetchUser, async (req, res) => {
 app.get('/getuser', fetchUser, async (req, res) => {
     try {
         const user = await Users.findById(req.user.user_id)
-            .select('_id name email user_type'); // Select only the required fields
+            .select('_id name email user_type') // Select only the required fields
+            .populate('user_type'); // Populate the user_type field
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -1469,6 +1470,24 @@ app.get('/getuser', fetchUser, async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+
+// Fetch products added by a specific seller
+app.get('/products/seller/:userId', fetchUser, async (req, res) => {
+    try {
+        const sellerId = req.params.userId;
+
+        const products = await Product.find({ added_by: sellerId })
+            .populate('added_by', 'name') // Optionally populate added_by to get seller info
+            .sort({ date: -1 });
+
+        res.status(200).json({ products });
+    } catch (error) {
+        console.error('Error fetching seller products:', error);
+        res.status(500).json({ message: 'Server error while fetching products.' });
+    }
+});
+
 
 // Endpoint to update product quantity
 // app.post('/updatequantity', fetchUser, async (req, res) => {
@@ -2142,6 +2161,66 @@ app.post('/clearcart', fetchUser, async (req, res) => {
         res.status(500).send("Error clearing the cart");
     }
 });
+
+
+
+
+// Endpoint to fetch all orders for the authenticated user
+app.get('/orders', fetchUser, async (req, res) => {
+    try {
+        // Fetch orders for the authenticated user
+        const userId = req.user.user_id; // Assuming fetchUser adds `user_id` to req.user
+        const userOrders = await OrderHistory.find({ user: userId })
+            .populate('product', 'name image') // Populate product details (name, image)
+            .sort({ date: -1 }); // Sort by date in descending order
+
+        if (!userOrders || userOrders.length === 0) {
+            return res.status(400).json({ message: 'No orders found for this user.' });
+        }
+
+        // Format the response data
+        const orders = userOrders.map((order) => ({
+            id: order._id,
+            product: {
+                id: order.product._id,
+                name: order.product.name,
+                image: order.product.image[0], // Assuming `image` is an array
+            },
+            quantity: order.quantity,
+            totalPrice: order.totalPrice,
+            shipped: order.shipped ? 'Shipped' : 'Pending', // Convert boolean to status
+            date: order.date,
+            billingInfo: order.billingInfo, // Include billing info if needed
+        }));
+
+        res.status(200).json({ orders });
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ message: 'Server error while fetching orders.' });
+    }
+});
+
+
+
+// Fetch products added by a specific seller
+app.get('/products/seller/:userId', async (req, res) => {
+    try {
+        const sellerId = req.params.userId;
+
+        const products = await Product.find({ added_by: sellerId })
+            .populate('added_by', 'name') // Optionally populate added_by to get seller info
+            .sort({ date: -1 });
+
+        res.status(200).json({ products });
+    } catch (error) {
+        console.error('Error fetching seller products:', error);
+        res.status(500).json({ message: 'Server error while fetching products.' });
+    }
+});
+
+
+
+
 
 // User Route
 app.get("/user", fetchUser, async (req, res) => {

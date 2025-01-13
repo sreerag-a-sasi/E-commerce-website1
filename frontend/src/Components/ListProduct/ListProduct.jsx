@@ -850,16 +850,64 @@ const ListProduct = () => {
         }
     };
 
+    const fetchDetails = async (currentUserId, currentUserType) => {
+        try {
+            const response = await fetch('http://localhost:4000/allproducts', {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'auth-token': localStorage.getItem('auth-token'),
+                    'Content-Type': 'application/json'
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("products in list :", data);
+
+                // Filter products based on the user type
+                const filteredProducts = data.filter(product =>
+                    currentUserType === 'Admin' || // Admin can see all products
+                    (currentUserType === 'Seller' && product.added_by === currentUserId) // Sellers can only see their own products
+                );                                
+
+                console.log({ currentUserId, currentUserType, allProducts: data });
+                console.log("Filtered Products:", filteredProducts);
+                console.log("Blocked Products:", data.filter(product => product.blocked));
+                console.log("Current User ID:", currentUserId);
+                console.log("Current User Type:", currentUserType);
+                
+
+
+                const failingProducts = data.filter(product =>
+                    !(currentUserType === '676c07e68c1c6815439b181c' ||
+                        product.added_by === currentUserId ||
+                        !product.added_by)
+                );
+                
+
+                console.log("Failing Products:", failingProducts);
+
+                setAllProducts(filteredProducts); // Set the filtered products
+            } else {
+                console.error("Failed to fetch products.");
+            }
+        } catch (error) {
+            console.error("Error fetching products:", error);
+        }
+    };
+
+
     useEffect(() => {
         const authToken = localStorage.getItem('auth-token');
         if (!authToken) {
-            alert('Unauthorized: Please login as an admin.');
+            alert('Unauthorized: Please login.');
             navigate('/login');
             return;
         }
 
-        // Verify if the user is an admin
-        const verifyAdmin = async () => {
+        // Verify if the user is logged in and fetch their type
+        const verifyUser = async () => {
             try {
                 const response = await fetch('http://localhost:4000/getuser', {
                     method: 'GET',
@@ -868,25 +916,37 @@ const ListProduct = () => {
                         'Content-Type': 'application/json',
                     },
                 });
+
                 if (response.ok) {
                     const data = await response.json();
-                    if (!data || data.user.user_type !== '676c07e68c1c6815439b181c') {
-                        alert('Unauthorized: Only admins can access this page.');
+                    console.log(data); // Check if the user is fetched correctly
+
+                    if (!data || !data.user || !data.user.user_type) {
+                        alert('Unauthorized: Please login again.');
                         navigate('/login');
+                        return;
+                    }
+
+                    const currentUserId = data.user._id; // Get the current user ID
+                    const currentUserType = data.user.user_type.user_type; // Get the current user type (Seller, Admin, etc.)
+
+                    if (currentUserType === 'Admin' || currentUserType === 'Seller') {
+                        fetchDetails(currentUserId, currentUserType); // Fetch products based on the user type
                     } else {
-                        fetchInfo();
+                        alert('Unauthorized: Buyers cannot view products.');
+                        navigate('/login');
                     }
                 } else {
                     alert('Unauthorized: Please login again.');
                     navigate('/login');
                 }
             } catch (error) {
-                console.error('Error verifying admin:', error);
+                console.error('Error verifying user:', error);
                 navigate('/login');
             }
         };
 
-        verifyAdmin();
+        verifyUser();
     }, [navigate]);
 
     // Fetch order history for the product
@@ -997,7 +1057,7 @@ const ListProduct = () => {
                                     <p>Old Price: ${product.old_price}</p>
                                     <p>New Price: ${product.new_price}</p>
                                     <p>Category: {product.category}</p>
-                                    <p>Added by: {product.added_by}</p>
+                                    {/* <p>Added by: {product.added_by}</p> */}
                                     <p>Seller: {product.seller}</p>
                                     <div className="price-details">
                                         <h4>Prices by Size:</h4>
