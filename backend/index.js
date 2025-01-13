@@ -1841,9 +1841,28 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
 
         console.log("billing info : ", billingInfo);
         // Ensure billingInfo contains all required fields
-        if (!billingInfo || !billingInfo.postal || !billingInfo.fullname || !billingInfo.email) {
+        // if (!billingInfo || !billingInfo.postal || !billingInfo.fullname || !billingInfo.email) {
+        //     return res.status(400).json({ message: "Billing information is incomplete" });
+        // }
+        if (!billingInfo) {
+            console.log("Billing information is missing.");
             return res.status(400).json({ message: "Billing information is incomplete" });
         }
+        
+        if (!billingInfo.postal) {
+            console.log("Billing information is missing: postal code.");
+            return res.status(400).json({ message: "Billing information is incomplete: missing postal code" });
+        }
+        
+        if (!billingInfo.fullname) {
+            console.log("Billing information is missing: fullname.");
+            return res.status(400).json({ message: "Billing information is incomplete: missing fullname" });
+        }
+        
+        if (!billingInfo.email) {
+            console.log("Billing information is missing: email.");
+            return res.status(400).json({ message: "Billing information is incomplete: missing email" });
+        }        
 
         // Check if the user already has an address that matches the billing info
         let userAddress = await Address.findOne({

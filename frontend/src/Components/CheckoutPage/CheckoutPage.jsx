@@ -738,10 +738,11 @@ const CheckoutPage = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setBillingInfo(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+        setBillingInfo((prevState) => {
+            const updatedState = { ...prevState, [name]: value };
+            console.log('Updated Billing Info:', updatedState); // Debugging log
+            return updatedState;
+        });
     };
 
     const handleSelectAddress = (address) => {
@@ -755,7 +756,7 @@ const CheckoutPage = () => {
             postal: address.postalCode || '',
             country: address.country || ''
         });
-    };    
+    };
 
     const fetchAddresses = async () => {
         try {
@@ -780,72 +781,37 @@ const CheckoutPage = () => {
     };
 
     const handlePlaceOrder = async () => {
-        const orderProducts = cartProducts.map(product => ({
+        // Ensure billingInfo is valid
+        if (!billingInfo.fullname || !billingInfo.postal || !billingInfo.email) {
+            alert('Please complete all billing fields.');
+            return;
+        }
+
+        const orderProducts = cartProducts.map((product) => ({
             _id: product._id,
             id: product.id,
             quantity: isDirectPurchase ? 1 : cartItems[product.id],
-            new_price: product.new_price
+            new_price: product.new_price,
         }));
-        console.log("Order Products:", orderProducts);
 
-
-        // If no address is selected, use the billing info to create a new address
-        let orderDetails = {
+        const orderDetails = {
             products: orderProducts,
-            billingInfo,
-            totalAmount: getTotal()
+            billingInfo, // Always use the current billingInfo state
+            totalAmount: getTotal(),
         };
 
-        // Check if new address should be added
-        if (!selectedAddress) {
-            const newAddress = {
-                fullname: billingInfo.fullname,
-                email: billingInfo.email,
-                phone: billingInfo.phone,
-                city: billingInfo.city,
-                state: billingInfo.state,
-                postalCode: billingInfo.postal,
-                country: billingInfo.country
-            };
-
-            // Send the new address to the backend and get the saved address
-            try {
-                const addressResponse = await fetch('http://localhost:4000/addAddress', {
-                    method: 'POST',
-                    headers: {
-                        'auth-token': localStorage.getItem('auth-token'),
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(newAddress)
-                });
-
-                if (addressResponse.ok) {
-                    const addressData = await addressResponse.json();
-                    orderDetails.billingInfo = addressData.address; // Update billing info with saved address
-                } else {
-                    alert('Error adding address');
-                    return;
-                }
-            } catch (error) {
-                console.error('Error adding address:', error);
-                alert('Error adding address. Please try again.');
-                return;
-            }
-        }
-
-        // Place the order with the correct billing info
         try {
             const response = await fetch('http://localhost:4000/placeOrder', {
                 method: 'POST',
                 headers: {
                     'auth-token': localStorage.getItem('auth-token'),
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(orderDetails)
+                body: JSON.stringify(orderDetails),
             });
 
             if (response.ok) {
-                alert("Order placed successfully");
+                alert('Order placed successfully');
                 await clearCart();
                 navigate('/');
             } else {
@@ -853,8 +819,8 @@ const CheckoutPage = () => {
                 alert(`Error placing order: ${data.message}`);
             }
         } catch (error) {
-            console.error("Error placing order:", error);
-            alert("Error placing order. Please try again.");
+            console.error('Error placing order:', error);
+            alert('Error placing order. Please try again.');
         }
     };
 
@@ -887,18 +853,18 @@ const CheckoutPage = () => {
                     <h3>Select an Address</h3>
                     {addresses.length > 0 ? (
                         <ul>
-                        {addresses.map((address, index) => (
-                            <li
-                                key={index}
-                                onClick={() => handleSelectAddress(address)}
-                                className={selectedAddress === address ? 'selected-address' : ''}
-                                style={{ cursor: 'pointer' }}  // Added cursor pointer style
-                            >
-                                <p>{address.fullname}, {address.email}, {address.phone}</p>
-                                <p>{address.city}, {address.state}, {address.postalCode}, {address.country}</p>
-                            </li>
-                        ))}
-                    </ul>                                        
+                            {addresses.map((address, index) => (
+                                <li
+                                    key={index}
+                                    onClick={() => handleSelectAddress(address)}
+                                    className={selectedAddress === address ? 'selected-address' : ''}
+                                    style={{ cursor: 'pointer' }}  // Added cursor pointer style
+                                >
+                                    <p>{address.fullname}, {address.email}, {address.phone}</p>
+                                    <p>{address.city}, {address.state}, {address.postalCode}, {address.country}</p>
+                                </li>
+                            ))}
+                        </ul>
                     ) : (
                         <p>No saved addresses. Add a new one below.</p>
                     )}
@@ -965,7 +931,7 @@ const CheckoutPage = () => {
                         <input
                             type="text"
                             id="postal"
-                            name="postal"
+                            name="postal" // Ensure this matches the key in billingInfo
                             value={billingInfo.postal || ''}
                             onChange={handleInputChange}
                             required
