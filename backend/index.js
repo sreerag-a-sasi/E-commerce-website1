@@ -484,6 +484,11 @@ app.post('/addproduct', async (req, res) => {
         category: req.body.category,
         new_price: req.body.new_price,
         old_price: req.body.old_price,
+        S: req.body.S,
+        M: req.body.M,
+        L: req.body.L,
+        XL: req.body.XL,
+        XXL: req.body.XXL,
         available: req.body.available,
         description: req.body.description,
         added_by: req.body.added_by,
@@ -1159,25 +1164,109 @@ app.post('/getwishlist', fetchUser, async (req, res) => {
 });
 
 
+// app.post('/addtocart', fetchUser, async (req, res) => {
+//     try {
+//         const { itemId } = req.body;
+
+//         if (!itemId) {
+//             return res.status(400).json({ message: "Invalid item ID" });
+//         }
+
+//         //console.log("Adding item to cart:", itemId);
+
+//         const updatedUser = await Users.findByIdAndUpdate(
+//             req.user.user_id,
+//             { $inc: { [`cartData.${itemId}`]: 1 } },
+//             { upsert: true, new: true }
+//         );
+
+//         if (!updatedUser) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         res.status(200).json({
+//             message: "Item added to the cart",
+//             cartData: updatedUser.cartData,
+//         });
+//     } catch (error) {
+//         console.error("Error adding item to the cart:", error);
+//         res.status(500).json({
+//             message: "Error adding item to the cart",
+//             error: error.message,
+//         });
+//     }
+// });
+
+// Add to Cart Endpoint
 app.post('/addtocart', fetchUser, async (req, res) => {
     try {
-        const { itemId } = req.body;
+        const { id, quantity, size, price } = req.body;
 
-        if (!itemId) {
-            return res.status(400).json({ message: "Invalid item ID" });
+        if (!id || !quantity || !size || !price) {
+            return res.status(400).json({ message: "All fields are required" });
         }
 
-        //console.log("Adding item to cart:", itemId);
+        // Validate the size
+        const validSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+        if (!validSizes.includes(size)) {
+            return res.status(400).json({ message: "Invalid size" });
+        }
 
+        // Find the product by productId
+        const product = await Product.findOne({ id: id });
+
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Check if the selected size is available
+        const sizeAvailability = product[size]; // This will refer to the size like 'S', 'M', 'L', etc.
+
+        if (!sizeAvailability || sizeAvailability <= 0) {
+            return res.status(400).json({ message: `Size ${size} is not available` });
+        }
+
+        // Check if the quantity requested is available
+        if (quantity > sizeAvailability) {
+            return res.status(400).json({ message: "Insufficient stock for the selected size" });
+        }
+
+        // Find the user and check if the product with the same size is already in the cart
+        const user = await Users.findById(req.user.user_id);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Check if the product with the same id and size is already in the user's cart
+        // Check if the product with the same id and size is already in the user's cart
+        const existingItem = user.cartData.find(
+            (item) => item.id === id && item.size === size
+        );
+
+        if (existingItem) {
+            return res.status(400).json({ message: "The product is already in the cart" });
+        }
+
+        // Add the new item to the user's cart
         const updatedUser = await Users.findByIdAndUpdate(
             req.user.user_id,
-            { $inc: { [`cartData.${itemId}`]: 1 } },
+            {
+                $push: {
+                    cartData: {
+                        id,
+                        quantity,
+                        size,
+                        price,
+                    },
+                },
+            },
             { upsert: true, new: true }
         );
 
-        if (!updatedUser) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        // Decrease product stock for the selected size
+        product[size] -= quantity; // Decrease the stock for the specific size
+        await product.save();
 
         res.status(200).json({
             message: "Item added to the cart",
@@ -1315,42 +1404,100 @@ app.post('/deletefromwishlist', fetchUser, async (req, res) => {
 });
 
 
+// app.post('/removefromcart', fetchUser, async (req, res) => {
+//     try {
+//         const { itemId } = req.body;
+
+//         if (!itemId) {
+//             return res.status(400).json({ message: "Invalid item ID" });
+//         }
+
+//         console.log("Attempting to remove item from cart:", itemId);
+
+//         // Use `findByIdAndUpdate` for atomic update and save
+//         const updatedUser = await Users.findByIdAndUpdate(
+//             req.user.user_id,
+//             {
+//                 $inc: { [`cartData.${itemId}`]: -1 }, // Decrement the item quantity
+//             },
+//             { new: true } // Return the updated document
+//         );
+
+//         if (!updatedUser) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         // Remove the item from `cartData` if its quantity becomes 0
+//         if (updatedUser.cartData[itemId] <= 0) {
+//             delete updatedUser.cartData[itemId];
+
+//             // Save the changes after deletion
+//             await updatedUser.save();
+//         }
+
+//         //console.log("Updated cartData:", updatedUser.cartData);
+
+//         res.status(200).json({
+//             message: "Item removed from the cart",
+//             cartData: updatedUser.cartData,
+//         });
+//     } catch (error) {
+//         console.error("Error removing item from the cart:", error);
+//         res.status(500).json({
+//             message: "Error removing item from the cart",
+//             error: error.message,
+//         });
+//     }
+// });
+
 app.post('/removefromcart', fetchUser, async (req, res) => {
     try {
-        const { itemId } = req.body;
+        const { itemId, size } = req.body;  // Destructure itemId and size from the request body
 
-        if (!itemId) {
-            return res.status(400).json({ message: "Invalid item ID" });
+        console.log("Request body:", req.body); // Log the entire request body
+        console.log("item id:", itemId, "item size:", size, "user id:", req.user.user_id); // Log itemId, size, and user_id
+
+        if (!itemId || !size) {
+            return res.status(400).json({ message: "Invalid item ID or size" });
         }
 
-        console.log("Attempting to remove item from cart:", itemId);
+        console.log("Attempting to remove item from cart:", { itemId, size }); // Log the request data
 
-        // Use `findByIdAndUpdate` for atomic update and save
-        const updatedUser = await Users.findByIdAndUpdate(
-            req.user.user_id,
-            {
-                $inc: { [`cartData.${itemId}`]: -1 }, // Decrement the item quantity
-            },
-            { new: true } // Return the updated document
-        );
+        // Find the user
+        const user = await Users.findById(req.user.user_id);
+        console.log("User found:", user); // Log the user object
 
-        if (!updatedUser) {
+        if (!user) {
+            console.log("User not found");
             return res.status(404).json({ message: "User not found" });
         }
 
-        // Remove the item from `cartData` if its quantity becomes 0
-        if (updatedUser.cartData[itemId] <= 0) {
-            delete updatedUser.cartData[itemId];
+        // Find the index of the item to remove based on both id and size
+        const productIndex = user.cartData.findIndex(item => item.id === itemId && item.size === size);
+        console.log("Product index:", productIndex); // Log the product index
 
-            // Save the changes after deletion
-            await updatedUser.save();
+        if (productIndex === -1) {
+            console.log("Item not found in the cart");
+            return res.status(404).json({ message: "Item not found in the cart" });
         }
 
-        //console.log("Updated cartData:", updatedUser.cartData);
+        // Decrease the quantity of the product
+        user.cartData[productIndex].quantity -= 1;
+        console.log("Decreased quantity:", user.cartData[productIndex].quantity); // Log the decreased quantity
+
+        // If the quantity hits zero, remove the product from the cart
+        if (user.cartData[productIndex].quantity <= 0) {
+            user.cartData.splice(productIndex, 1);
+            console.log("Item removed from cart as quantity hit zero");
+        }
+
+        // Save the updated user cart data
+        await user.save();
+        console.log("User cart data saved");
 
         res.status(200).json({
             message: "Item removed from the cart",
-            cartData: updatedUser.cartData,
+            cartData: user.cartData,
         });
     } catch (error) {
         console.error("Error removing item from the cart:", error);
@@ -1360,6 +1507,8 @@ app.post('/removefromcart', fetchUser, async (req, res) => {
         });
     }
 });
+
+
 
 // app.post('/addfromcart', fetchUser, async (req, res) => {
 //     try {
@@ -1399,15 +1548,69 @@ app.post('/removefromcart', fetchUser, async (req, res) => {
 // });
 
 
+// app.post('/addfromcart', fetchUser, async (req, res) => {
+//     try {
+//         const { itemId } = req.body;
+
+//         if (!itemId) {
+//             return res.status(400).json({ message: "Invalid item ID" });
+//         }
+
+//         console.log("Attempting to add item to cart:", itemId);
+
+//         // Fetch the product by its `id` field
+//         const product = await Product.findOne({ id: itemId });
+//         if (!product) {
+//             return res.status(404).json({ message: "Product not found" });
+//         }
+
+//         // Check stock availability
+//         const stockAvailable = product.available;
+
+//         // Fetch the user's current cart data
+//         const user = await Users.findById(req.user.user_id);
+//         const cartQuantity = user.cartData[itemId] || 0;
+
+//         // Validate cart quantity against the stock available
+//         if (cartQuantity >= stockAvailable) {
+//             return res.status(400).json({ message: "Cannot add more than the available stock" });
+//         }
+
+//         // Increment the item quantity in the cart by 1
+//         const updatedUser = await Users.findByIdAndUpdate(
+//             req.user.user_id,
+//             { $inc: { [`cartData.${itemId}`]: 1 } },
+//             { new: true }
+//         );
+
+//         if (!updatedUser) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         console.log("Updated cartData:", updatedUser.cartData);
+
+//         res.status(200).json({
+//             message: "Item added to the cart",
+//             cartData: updatedUser.cartData,
+//         });
+//     } catch (error) {
+//         console.error("Error adding item to the cart:", error);
+//         res.status(500).json({
+//             message: "Error adding item to the cart",
+//             error: error.message,
+//         });
+//     }
+// });
+
 app.post('/addfromcart', fetchUser, async (req, res) => {
     try {
-        const { itemId } = req.body;
+        const { itemId, size } = req.body;  // Destructure itemId and size from the request body
 
-        if (!itemId) {
-            return res.status(400).json({ message: "Invalid item ID" });
+        if (!itemId || !size) {
+            return res.status(400).json({ message: "Invalid item ID or size" });
         }
 
-        console.log("Attempting to add item to cart:", itemId);
+        console.log("Attempting to add item to cart:", { itemId, size }); // Log the request data
 
         // Fetch the product by its `id` field
         const product = await Product.findOne({ id: itemId });
@@ -1420,7 +1623,8 @@ app.post('/addfromcart', fetchUser, async (req, res) => {
 
         // Fetch the user's current cart data
         const user = await Users.findById(req.user.user_id);
-        const cartQuantity = user.cartData[itemId] || 0;
+        const cartItem = user.cartData.find(item => item.id === itemId && item.size === size);
+        const cartQuantity = cartItem ? cartItem.quantity : 0;
 
         // Validate cart quantity against the stock available
         if (cartQuantity >= stockAvailable) {
@@ -1428,21 +1632,19 @@ app.post('/addfromcart', fetchUser, async (req, res) => {
         }
 
         // Increment the item quantity in the cart by 1
-        const updatedUser = await Users.findByIdAndUpdate(
-            req.user.user_id,
-            { $inc: { [`cartData.${itemId}`]: 1 } },
-            { new: true }
-        );
-
-        if (!updatedUser) {
-            return res.status(404).json({ message: "User not found" });
+        if (cartItem) {
+            cartItem.quantity += 1;
+        } else {
+            user.cartData.push({ id: itemId, size, quantity: 1, price: product.price });
         }
 
-        console.log("Updated cartData:", updatedUser.cartData);
+        // Save the updated user cart data
+        await user.save();
+        console.log("Updated cartData:", user.cartData); // Log the updated cart data
 
         res.status(200).json({
             message: "Item added to the cart",
-            cartData: updatedUser.cartData,
+            cartData: user.cartData,
         });
     } catch (error) {
         console.error("Error adding item to the cart:", error);
@@ -1586,32 +1788,83 @@ app.post('/updatequantity', fetchUser, async (req, res) => {
 });
 
 
+// app.post('/deletefromcart', fetchUser, async (req, res) => {
+//     try {
+//         const { itemId } = req.body;
+//         console.log("Attempting to delete item from cart:", itemId);
+
+//         const userData = await Users.findOne({ _id: req.user.user_id });
+//         if (!userData) {
+//             console.error("User not found");
+//             return res.status(404).json({ errors: "User not found" });
+//         }
+
+//         if (userData.cartData && userData.cartData[itemId]) {
+//             delete userData.cartData[itemId];
+//             userData.markModified('cartData'); // Mark cartData as modified
+//             await userData.save();
+//             console.log("Item successfully deleted from cart");
+//             return res.status(200).json({ message: "Item deleted from the cart" });
+//         } else {
+//             console.error("Item not found in cart");
+//             return res.status(404).json({ errors: "Item not found in cart" });
+//         }
+//     } catch (error) {
+//         console.error("Error deleting item from cart:", error);
+//         return res.status(500).json({ errors: "Error deleting item from the cart" });
+//     }
+// });
+
 app.post('/deletefromcart', fetchUser, async (req, res) => {
     try {
-        const { itemId } = req.body;
-        console.log("Attempting to delete item from cart:", itemId);
+        const { itemId, size } = req.body;  // Destructure itemId and size from the request body
 
-        const userData = await Users.findOne({ _id: req.user.user_id });
-        if (!userData) {
-            console.error("User not found");
-            return res.status(404).json({ errors: "User not found" });
+        console.log("Request body:", req.body); // Log the entire request body
+        console.log("item id:", itemId, "item size:", size, "user id:", req.user.user_id); // Log itemId, size, and user_id
+
+        // Find the user
+        const user = await Users.findById(req.user.user_id);
+        console.log("User found:", user); // Log the user object
+
+        if (!user) {
+            console.log("User not found");
+            return res.status(404).json({ message: "User not found" });
         }
 
-        if (userData.cartData && userData.cartData[itemId]) {
-            delete userData.cartData[itemId];
-            userData.markModified('cartData'); // Mark cartData as modified
-            await userData.save();
-            console.log("Item successfully deleted from cart");
-            return res.status(200).json({ message: "Item deleted from the cart" });
-        } else {
-            console.error("Item not found in cart");
-            return res.status(404).json({ errors: "Item not found in cart" });
+        // Find the index of the item to remove based on both id and size
+        const productIndex = user.cartData.findIndex(item => item.id === itemId && item.size === size);
+        console.log("Product index:", productIndex); // Log the product index
+
+        if (productIndex === -1) {
+            console.log("Item not found in the cart");
+            return res.status(404).json({ message: "Item not found in the cart" });
         }
+
+        // Remove the product from the cart
+        user.cartData.splice(productIndex, 1);
+        console.log("Updated cart data:", user.cartData); // Log the updated cart data
+
+        // Save the updated user cart data
+        await user.save();
+        console.log("User cart data saved");
+
+        res.status(200).json({
+            message: "Item removed from the cart",
+            cartData: user.cartData,
+        });
     } catch (error) {
         console.error("Error deleting item from cart:", error);
-        return res.status(500).json({ errors: "Error deleting item from the cart" });
+        res.status(500).json({
+            message: "Error deleting item from cart",
+            error: error.message,
+        });
     }
 });
+
+
+
+
+
 
 // app.post('/placeOrder', fetchUser, async (req, res) => {
 //     try {
@@ -1848,21 +2101,21 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
             console.log("Billing information is missing.");
             return res.status(400).json({ message: "Billing information is incomplete" });
         }
-        
+
         if (!billingInfo.postal) {
             console.log("Billing information is missing: postal code.");
             return res.status(400).json({ message: "Billing information is incomplete: missing postal code" });
         }
-        
+
         if (!billingInfo.fullname) {
             console.log("Billing information is missing: fullname.");
             return res.status(400).json({ message: "Billing information is incomplete: missing fullname" });
         }
-        
+
         if (!billingInfo.email) {
             console.log("Billing information is missing: email.");
             return res.status(400).json({ message: "Billing information is incomplete: missing email" });
-        }        
+        }
 
         // Check if the user already has an address that matches the billing info
         let userAddress = await Address.findOne({
@@ -2049,11 +2302,11 @@ app.get('/getOrderHistory', fetchUser, async (req, res) => {
 //         const { productId } = req.params;
 //         // Find the order history for the product
 //         const orderHistory = await OrderHistory.find({ product: productId }).populate('product user');
-        
+
 //         if (orderHistory.length === 0) {
 //             return res.status(404).json({ message: 'No order history found for this product' });
 //         }
-        
+
 //         res.status(200).json(orderHistory);
 //     } catch (error) {
 //         console.error('Error fetching order history:', error);
@@ -2070,7 +2323,7 @@ app.get('/orderhistory/:productId', async (req, res) => {
         const orderHistory = await OrderHistory.find({ product: productId })
             .populate('product') // Populate product details from the Product model
             .populate('user'); // Populate user details from the User model
-        
+
         if (orderHistory.length === 0) {
             return res.status(404).json({ message: 'No order history found for this product' });
         }
@@ -2085,7 +2338,7 @@ app.get('/orderhistory/:productId', async (req, res) => {
             user: {
                 name: order.user.name,
                 email: order.user.email,
-                phone:order.user.phone
+                phone: order.user.phone
                 // Add any other user fields you want to return
             }
         }));
@@ -2231,8 +2484,8 @@ app.get('/orders', fetchUser, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        console.log("user type : ",user.user_type);
-        
+        console.log("user type : ", user.user_type);
+
         const isAdmin = user.user_type.user_type === 'Admin'; // Assuming user_type has a 'name' field for roles
 
         let orders;
@@ -2287,27 +2540,27 @@ app.get('/orders', fetchUser, async (req, res) => {
 // Cancel order endpoint
 app.delete('/orders/:id', fetchUser, async (req, res) => {
     try {
-      const userId = req.user.user_id; // Assuming fetchUser adds `user_id` to req.user
-      const orderId = req.params.id;
-  
-      // Find the order to ensure it belongs to the authenticated user
-      const order = await OrderHistory.findOne({ _id: orderId, user: userId });
-  
-      if (!order) {
-        return res.status(404).json({ message: 'Order not found or unauthorized.' });
-      }
-  
-      // Delete the order
-      await OrderHistory.findByIdAndDelete(orderId);
-  
-      res.status(200).json({ message: 'Order canceled successfully.' });
+        const userId = req.user.user_id; // Assuming fetchUser adds `user_id` to req.user
+        const orderId = req.params.id;
+
+        // Find the order to ensure it belongs to the authenticated user
+        const order = await OrderHistory.findOne({ _id: orderId, user: userId });
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found or unauthorized.' });
+        }
+
+        // Delete the order
+        await OrderHistory.findByIdAndDelete(orderId);
+
+        res.status(200).json({ message: 'Order canceled successfully.' });
     } catch (error) {
-      console.error('Error canceling order:', error);
-      res.status(500).json({ message: 'Server error while canceling order.' });
+        console.error('Error canceling order:', error);
+        res.status(500).json({ message: 'Server error while canceling order.' });
     }
-  });
-  
-  
+});
+
+
 
 // Fetch products added by a specific seller
 app.get('/products/seller/:userId', async (req, res) => {

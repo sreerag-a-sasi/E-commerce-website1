@@ -73,13 +73,13 @@ const productSchema = new Schema({
         type: String,
         required: true,
     },
-    price: {
-        S: { type: Number },
-        M: { type: Number },
-        L: { type: Number },
-        XL: { type: Number },
-        XXL: { type: Number }
-    },
+    old_price: Number,
+    new_price: Number,
+    S: { type: Number },
+    M: { type: Number },
+    L: { type: Number },
+    XL: { type: Number },
+    XXL: { type: Number }, 
     date: {
         type: Date,
         default: Date.now,
@@ -104,3 +104,11 @@ const productSchema = new Schema({
 
 const Product = mongoose.model('Product', productSchema);
 module.exports = Product;
+
+// price: {
+//     S: { type: Number },
+//     M: { type: Number },
+//     L: { type: Number },
+//     XL: { type: Number },
+//     XXL: { type: Number },
+// },

@@ -10,7 +10,12 @@ const userSchema = new Schema({
     password: String,
     phone: String,
     image: String,
-    cartData: Object,
+    cartData: [{
+        id: { type: Number },
+        quantity: { type: Number },
+        size: { type: String },
+        price: { type: Number },
+    }],
     Wishlist: Object,
     date: {
         type: Date,
@@ -28,7 +33,7 @@ const userSchema = new Schema({
     orders: [{ type: Schema.Types.ObjectId, ref: 'Order' }],
     Address: { // New field to link billing
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Address', // Reference to the Adress schema
+        ref: 'Address', // Reference to the Address schema
     },
 });
 
@@ -37,7 +42,7 @@ module.exports = Users;
 
 
 
-
+//cartData: Object,
 
 // const mongoose = require('mongoose');
 // const { Schema } = mongoose;

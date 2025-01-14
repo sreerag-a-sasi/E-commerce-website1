@@ -331,7 +331,7 @@
     }
 
     .cartitems-format-main {
-        grid-template-columns: 0.5fr 2fr 0.5fr 0.5fr 0.5fr 0.5fr;
+        grid-template-columns: 0.5fr 1.5fr 0.5fr 0.5fr 0.5fr 0.5fr 0.5fr;
         gap: 20px;
         padding: 15px 0px;
         font-size: 15px;
@@ -393,7 +393,7 @@
 
     .cartitems-format {
         display: grid;
-        grid-template-columns: 0.5fr 3fr 1fr;
+        grid-template-columns: 0.5fr 0.5fr 1 1fr;
         gap: 10px;
         align-items: center;
         font-size: 14px;
