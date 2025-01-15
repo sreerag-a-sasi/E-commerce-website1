@@ -1019,6 +1019,852 @@
 
 
 
+// import React, { useContext, useState, useEffect } from 'react';
+// import { useLocation, useNavigate } from 'react-router-dom';
+// import './CheckoutPage.css';
+// import { ShopContext } from '../../Context/ShopContext';
+
+// const CheckoutPage = () => {
+//     const location = useLocation();
+//     const navigate = useNavigate();
+//     const { cartItems, allProduct, getTotalCartAmount, clearCart } = useContext(ShopContext);
+
+//     const [addresses, setAddresses] = useState([]);
+//     const [selectedAddress, setSelectedAddress] = useState(null);
+//     const [billingInfo, setBillingInfo] = useState({
+//         fullname: '',
+//         email: '',
+//         phone: '',
+//         city: '',
+//         state: '',
+//         postal: '',
+//         country: ''
+//     });
+
+//     let cartProducts = [];
+//     let isDirectPurchase = false;
+
+//     if (location.state && location.state.product) {
+//         cartProducts = [{
+//             ...location.state.product,
+//             size: location.state.size,
+//             price: location.state.price
+//         }];
+//         isDirectPurchase = true;
+//     } else {
+//         cartProducts = allProduct.filter(product => cartItems[product.id] > 0);
+//     }
+
+//     const redirectToProductPage = (productId) => {
+//         navigate(`/product/${productId}`);
+//     };
+
+//     const getSubtotal = () => {
+//         if (isDirectPurchase) {
+//             return cartProducts[0].price;
+//         }
+//         return getTotalCartAmount();
+//     };
+
+//     const getShippingFee = () => {
+//         const subtotal = getSubtotal();
+//         return subtotal < 1000 ? 50.00 : 0.00;
+//     };
+
+//     const getTotal = () => {
+//         const subtotal = getSubtotal();
+//         const shippingFee = getShippingFee();
+//         return subtotal + shippingFee;
+//     };
+
+//     const handleInputChange = (e) => {
+//         const { name, value } = e.target;
+//         setBillingInfo(prevState => ({ ...prevState, [name]: value }));
+//     };
+
+//     const handleSelectAddress = (address) => {
+//         setSelectedAddress(address);
+//         setBillingInfo({
+//             fullname: address.fullname || '',
+//             email: address.email || '',
+//             phone: address.phone || '',
+//             city: address.city || '',
+//             state: address.state || '',
+//             postal: address.postal || '',
+//             country: address.country || ''
+//         });
+//     };
+
+//     const fetchAddresses = async () => {
+//         try {
+//             const response = await fetch('http://localhost:4000/getAddresses', {
+//                 method: 'GET',
+//                 headers: {
+//                     'auth-token': localStorage.getItem('auth-token'),
+//                     'Content-Type': 'application/json'
+//                 }
+//             });
+
+//             if (response.ok) {
+//                 const data = await response.json();
+//                 setAddresses(data.addresses);
+//             } else {
+//                 console.error('Error fetching addresses');
+//             }
+//         } catch (error) {
+//             console.error('Error:', error);
+//         }
+//     };
+
+//     const handlePlaceOrder = async () => {
+//         const orderProducts = cartProducts.map(product => ({
+//             _id: product._id,
+//             id: product.id,
+//             quantity: isDirectPurchase ? 1 : cartItems[product.id],
+//             size: product.size,
+//             price: product.price
+//         }));
+
+//         const orderDetails = {
+//             products: orderProducts,
+//             billingInfo,
+//             totalAmount: getTotal()
+//         };
+
+//         try {
+//             const response = await fetch('http://localhost:4000/placeOrder', {
+//                 method: 'POST',
+//                 headers: {
+//                     'auth-token': localStorage.getItem('auth-token'),
+//                     'Content-Type': 'application/json'
+//                 },
+//                 body: JSON.stringify(orderDetails)
+//             });
+
+//             if (response.ok) {
+//                 alert("Order placed successfully");
+//                 await clearCart();
+//                 navigate('/');
+//             } else {
+//                 const data = await response.json();
+//                 alert(`Error placing order: ${data.message}`);
+//             }
+//         } catch (error) {
+//             console.error("Error placing order:", error);
+//             alert("Error placing order. Please try again.");
+//         }
+//     };
+
+//     useEffect(() => {
+//         fetchAddresses();
+//     }, []);
+//     return (
+//         <div className="container">
+//             <div className="product-info">
+//                 <h2>Product Information</h2>
+//                 {cartProducts.map(product => (
+//                     <div className="product-item" key={product.id}>
+//                         <img src={product.image[0]} alt="Product" className="product-image"
+//                             onClick={() => redirectToProductPage(product.id)} />
+//                         <div className="product-details">
+//                             <p><strong>Item:</strong> {product.name}</p>
+//                             <p><strong>Price:</strong> ${product.price}</p>
+//                             <p><strong>Size:</strong> {product.size}</p> {/* Display size */}
+//                             <p><strong>Quantity:</strong> {isDirectPurchase ? 1 : cartItems[product.id]}</p>
+//                             <p><strong>Total:</strong> ${product.price * (isDirectPurchase ? 1 : cartItems[product.id])}</p>
+//                         </div>
+//                     </div>
+//                 ))}
+//             </div>
+
+//             <div className="billing-info">
+//                 <h2>Billing Information</h2>
+//                 <div className="address-selection">
+//                     <h3>Select an Address</h3>
+//                     {addresses.length > 0 ? (
+//                         <ul>
+//                             {addresses.map((address, index) => (
+//                                 <li
+//                                     key={index}
+//                                     onClick={() => handleSelectAddress(address)}
+//                                     className={selectedAddress === address ? 'selected-address' : ''}
+//                                     style={{ cursor: 'pointer' }}  // Added cursor pointer style
+//                                 >
+//                                     <p>{address.fullname}, {address.email}, {address.phone}</p>
+//                                     <p>{address.city}, {address.state}, {address.postalCode}, {address.country}</p>
+//                                 </li>
+//                             ))}
+//                         </ul>
+//                     ) : (
+//                         <p>No saved addresses. Add a new one below.</p>
+//                     )}
+//                 </div>
+
+//                 <form>
+//                     <div className="form-group">
+//                         <label htmlFor="fullname">Full Name</label>
+//                         <input
+//                             type="text"
+//                             id="fullname"
+//                             name="fullname"
+//                             value={billingInfo.fullname || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="email">Email Address</label>
+//                         <input
+//                             type="email"
+//                             id="email"
+//                             name="email"
+//                             value={billingInfo.email || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="phone">Phone Number</label>
+//                         <input
+//                             type="tel"
+//                             id="phone"
+//                             name="phone"
+//                             value={billingInfo.phone || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="city">City</label>
+//                         <input
+//                             type="text"
+//                             id="city"
+//                             name="city"
+//                             value={billingInfo.city || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="state">State/Province</label>
+//                         <input
+//                             type="text"
+//                             id="state"
+//                             name="state"
+//                             value={billingInfo.state || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="postal">Postal Code</label>
+//                         <input
+//                             type="text"
+//                             id="postal"
+//                             name="postal" // Ensure this matches the key in billingInfo
+//                             value={billingInfo.postal || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="country">Country</label>
+//                         <input
+//                             type="text"
+//                             id="country"
+//                             name="country"
+//                             value={billingInfo.country || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                 </form>
+//             </div>
+//             <div className="order-summary">
+//                 <h2>Order Summary</h2>
+//                 <p><strong>Subtotal:</strong> ${getSubtotal()}</p>
+//                 <p id='fee'>*On orders above $1000, shipping is free.</p>
+//                 <p><strong>Shipping:</strong> ${getShippingFee()}</p>
+//                 <p><strong>Total:</strong> ${getTotal()}</p>
+//             </div>
+//             <div className="checkout-buttons">
+//                 <button className='checkoutbutton' type="button" onClick={handlePlaceOrder}>Place Order</button>
+//                 <button className='checkoutbutton' type="button" onClick={() => navigate('/')}>Cancel</button>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default CheckoutPage;
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useContext, useState, useEffect } from 'react';
+// import { useLocation, useNavigate } from 'react-router-dom';
+// import './CheckoutPage.css';
+// import { ShopContext } from '../../Context/ShopContext';
+
+// const CheckoutPage = () => {
+//     const location = useLocation();
+//     const navigate = useNavigate();
+//     const { cartItems, allProduct, getTotalCartAmount, clearCart } = useContext(ShopContext);
+
+//     const [addresses, setAddresses] = useState([]);
+//     const [selectedAddress, setSelectedAddress] = useState(null);
+//     const [billingInfo, setBillingInfo] = useState({
+//         fullname: '',
+//         email: '',
+//         phone: '',
+//         city: '',
+//         state: '',
+//         postal: '',
+//         country: ''
+//     });
+
+//     let cartProducts = [];
+//     let isDirectPurchase = false;
+
+//     if (location.state && location.state.products) {
+//         cartProducts = location.state.products.map(product => ({
+//             ...product,
+//             quantity: cartItems[product.id] || 1
+//         }));
+//         isDirectPurchase = cartProducts.length === 1;
+//     } else {
+//         cartProducts = allProduct.filter(product => cartItems[product.id] > 0).map(product => ({
+//             ...product,
+//             quantity: cartItems[product.id]
+//         }));
+//     }
+
+//     const redirectToProductPage = (productId) => {
+//         navigate(`/product/${productId}`);
+//     };
+
+//     const getSubtotal = () => {
+//         return cartProducts.reduce((subtotal, product) => subtotal + product.price * product.quantity, 0);
+//     };
+
+//     const getShippingFee = () => {
+//         const subtotal = getSubtotal();
+//         return subtotal < 1000 ? 50.00 : 0.00;
+//     };
+
+//     const getTotal = () => {
+//         return getSubtotal() + getShippingFee();
+//     };
+
+//     const handleInputChange = (e) => {
+//         const { name, value } = e.target;
+//         setBillingInfo(prevState => ({ ...prevState, [name]: value }));
+//     };
+
+//     const handleSelectAddress = (address) => {
+//         setSelectedAddress(address);
+//         setBillingInfo({
+//             fullname: address.fullname || '',
+//             email: address.email || '',
+//             phone: address.phone || '',
+//             city: address.city || '',
+//             state: address.state || '',
+//             postal: address.postal || '',
+//             country: address.country || ''
+//         });
+//     };
+
+//     const fetchAddresses = async () => {
+//         try {
+//             const response = await fetch('http://localhost:4000/getAddresses', {
+//                 method: 'GET',
+//                 headers: {
+//                     'auth-token': localStorage.getItem('auth-token'),
+//                     'Content-Type': 'application/json'
+//                 }
+//             });
+
+//             if (response.ok) {
+//                 const data = await response.json();
+//                 setAddresses(data.addresses);
+//             } else {
+//                 console.error('Error fetching addresses');
+//             }
+//         } catch (error) {
+//             console.error('Error:', error);
+//         }
+//     };
+
+//     const handlePlaceOrder = async () => {
+//         const orderProducts = cartProducts.map(product => ({
+//             _id: product._id,
+//             id: product.id,
+//             quantity: product.quantity,
+//             size: product.size,
+//             price: product.price
+//         }));
+
+//         const orderDetails = {
+//             products: orderProducts,
+//             billingInfo,
+//             totalAmount: getTotal()
+//         };
+
+//         try {
+//             const response = await fetch('http://localhost:4000/placeOrder', {
+//                 method: 'POST',
+//                 headers: {
+//                     'auth-token': localStorage.getItem('auth-token'),
+//                     'Content-Type': 'application/json'
+//                 },
+//                 body: JSON.stringify(orderDetails)
+//             });
+
+//             if (response.ok) {
+//                 alert("Order placed successfully");
+//                 await clearCart();
+//                 navigate('/');
+//             } else {
+//                 const data = await response.json();
+//                 alert(`Error placing order: ${data.message}`);
+//             }
+//         } catch (error) {
+//             console.error("Error placing order:", error);
+//             alert("Error placing order. Please try again.");
+//         }
+//     };
+
+//     useEffect(() => {
+//         fetchAddresses();
+//     }, []);
+
+//     return (
+//         <div className="container">
+//             <div className="product-info">
+//                 <h2>Product Information</h2>
+//                 {cartProducts.map(product => (
+//                     <div className="product-item" key={product.id}>
+//                         <img src={product.image[0]} alt="Product" className="product-image"
+//                             onClick={() => redirectToProductPage(product.id)} />
+//                         <div className="product-details">
+//                             <p><strong>Item:</strong> {product.name}</p>
+//                             <p><strong>Price:</strong> ${product.price}</p>
+//                             <p><strong>Size:</strong> {product.size}</p>
+//                             <p><strong>Quantity:</strong> {product.quantity}</p>
+//                             <p><strong>Total:</strong> ${product.price * product.quantity}</p>
+//                         </div>
+//                     </div>
+//                 ))}
+//             </div>
+
+//             <div className="billing-info">
+//                 <h2>Billing Information</h2>
+//                 <div className="address-selection">
+//                     <h3>Select an Address</h3>
+//                     {addresses.length > 0 ? (
+//                         <ul>
+//                             {addresses.map((address, index) => (
+//                                 <li
+//                                     key={index}
+//                                     onClick={() => handleSelectAddress(address)}
+//                                     className={selectedAddress === address ? 'selected-address' : ''}
+//                                     style={{ cursor: 'pointer' }}
+//                                 >
+//                                     <p>{address.fullname}, {address.email}, {address.phone}</p>
+//                                     <p>{address.city}, {address.state}, {address.postalCode}, {address.country}</p>
+//                                 </li>
+//                             ))}
+//                         </ul>
+//                     ) : (
+//                         <p>No saved addresses. Add a new one below.</p>
+//                     )}
+//                 </div>
+//                 <form>
+//                     <div className="form-group">
+//                         <label htmlFor="fullname">Full Name</label>
+//                         <input
+//                             type="text"
+//                             id="fullname"
+//                             name="fullname"
+//                             value={billingInfo.fullname || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="email">Email Address</label>
+//                         <input
+//                             type="email"
+//                             id="email"
+//                             name="email"
+//                             value={billingInfo.email || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="phone">Phone Number</label>
+//                         <input
+//                             type="tel"
+//                             id="phone"
+//                             name="phone"
+//                             value={billingInfo.phone || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="city">City</label>
+//                         <input
+//                             type="text"
+//                             id="city"
+//                             name="city"
+//                             value={billingInfo.city || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="state">State/Province</label>
+//                         <input
+//                             type="text"
+//                             id="state"
+//                             name="state"
+//                             value={billingInfo.state || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="postal">Postal Code</label>
+//                         <input
+//                             type="text"
+//                             id="postal"
+//                             name="postal" // Ensure this matches the key in billingInfo
+//                             value={billingInfo.postal || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="country">Country</label>
+//                         <input
+//                             type="text"
+//                             id="country"
+//                             name="country"
+//                             value={billingInfo.country || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                 </form>
+//             </div>
+//             <div className="order-summary">
+//                 <h2>Order Summary</h2>
+//                 <p><strong>Subtotal:</strong> ${getSubtotal()}</p>
+//                 <p id='fee'>*On orders above $1000, shipping is free.</p>
+//                 <p><strong>Shipping:</strong> ${getShippingFee()}</p>
+//                 <p><strong>Total:</strong> ${getTotal()}</p>
+//             </div>
+//             <div className="checkout-buttons">
+//                 <button className='checkoutbutton' type="button" onClick={handlePlaceOrder}>Place Order</button>
+//                 <button className='checkoutbutton' type="button" onClick={() => navigate('/')}>Cancel</button>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default CheckoutPage;
+
+
+
+
+
+
+// import React, { useContext, useState, useEffect } from 'react';
+// import { useLocation, useNavigate } from 'react-router-dom';
+// import './CheckoutPage.css';
+// import { ShopContext } from '../../Context/ShopContext';
+
+// const CheckoutPage = () => {
+//     const location = useLocation();
+//     const navigate = useNavigate();
+//     const { cartItems, allProduct, getTotalCartAmount, clearCart } = useContext(ShopContext);
+
+//     const [addresses, setAddresses] = useState([]);
+//     const [selectedAddress, setSelectedAddress] = useState(null);
+//     const [billingInfo, setBillingInfo] = useState({
+//         fullname: '',
+//         email: '',
+//         phone: '',
+//         city: '',
+//         state: '',
+//         postal: '',
+//         country: ''
+//     });
+
+//     let cartProducts = [];
+//     let isDirectPurchase = false;
+
+//     if (location.state && location.state.products) {
+//         cartProducts = location.state.products.map(product => ({
+//             ...product,
+//             quantity: cartItems[product.id] || product.quantity
+//         }));
+//         isDirectPurchase = cartProducts.length === 1;
+//     } else {
+//         cartProducts = allProduct.filter(product => cartItems[product.id] > 0).map(product => ({
+//             ...product,
+//             quantity: cartItems[product.id]
+//         }));
+//     }
+
+//     const redirectToProductPage = (productId) => {
+//         navigate(`/product/${productId}`);
+//     };
+
+//     const getSubtotal = () => {
+//         return cartProducts.reduce((subtotal, product) => subtotal + product.price * product.quantity, 0);
+//     };
+
+//     const getShippingFee = () => {
+//         const subtotal = getSubtotal();
+//         return subtotal < 1000 ? 50.00 : 0.00;
+//     };
+
+//     const getTotal = () => {
+//         return getSubtotal() + getShippingFee();
+//     };
+
+//     const handleInputChange = (e) => {
+//         const { name, value } = e.target;
+//         setBillingInfo(prevState => ({ ...prevState, [name]: value }));
+//     };
+
+//     const handleSelectAddress = (address) => {
+//         setSelectedAddress(address);
+//         setBillingInfo({
+//             fullname: address.fullname || '',
+//             email: address.email || '',
+//             phone: address.phone || '',
+//             city: address.city || '',
+//             state: address.state || '',
+//             postal: address.postal || '',
+//             country: address.country || ''
+//         });
+//     };
+
+//     const fetchAddresses = async () => {
+//         try {
+//             const response = await fetch('http://localhost:4000/getAddresses', {
+//                 method: 'GET',
+//                 headers: {
+//                     'auth-token': localStorage.getItem('auth-token'),
+//                     'Content-Type': 'application/json'
+//                 }
+//             });
+
+//             if (response.ok) {
+//                 const data = await response.json();
+//                 setAddresses(data.addresses);
+//             } else {
+//                 console.error('Error fetching addresses');
+//             }
+//         } catch (error) {
+//             console.error('Error:', error);
+//         }
+//     };
+
+//     const handlePlaceOrder = async () => {
+//         const orderProducts = cartProducts.map(product => ({
+//             _id: product._id,
+//             id: product.id,
+//             quantity: product.quantity,
+//             size: product.size,
+//             price: product.price
+//         }));
+
+//         const orderDetails = {
+//             products: orderProducts,
+//             billingInfo,
+//             totalAmount: getTotal()
+//         };
+
+//         try {
+//             const response = await fetch('http://localhost:4000/placeOrder', {
+//                 method: 'POST',
+//                 headers: {
+//                     'auth-token': localStorage.getItem('auth-token'),
+//                     'Content-Type': 'application/json'
+//                 },
+//                 body: JSON.stringify(orderDetails)
+//             });
+
+//             if (response.ok) {
+//                 alert("Order placed successfully");
+//                 await clearCart();
+//                 navigate('/');
+//             } else {
+//                 const data = await response.json();
+//                 alert(`Error placing order: ${data.message}`);
+//             }
+//         } catch (error) {
+//             console.error("Error placing order:", error);
+//             alert("Error placing order. Please try again.");
+//         }
+//     };
+
+//     useEffect(() => {
+//         fetchAddresses();
+//     }, []);
+
+//     return (
+//         <div className="container">
+//             <div className="product-info">
+//                 <h2>Product Information</h2>
+//                 {cartProducts.map((product, index) => (
+//                     <div className="product-item" key={`${product.id}-${index}`}>
+//                         <img src={product.image} alt="Product" className="product-image"
+//                             onClick={() => redirectToProductPage(product.id)} />
+//                         <div className="product-details">
+//                             <p><strong>Item:</strong> {product.name}</p>
+//                             <p><strong>Price:</strong> ${product.price}</p>
+//                             <p><strong>Size:</strong> {product.size}</p>
+//                             <p><strong>Quantity:</strong> {product.quantity}</p>
+//                             <p><strong>Total:</strong> ${product.price * product.quantity}</p>
+//                         </div>
+//                     </div>
+//                 ))}
+//             </div>
+
+//             <div className="billing-info">
+//                 <h2>Billing Information</h2>
+//                 <div className="address-selection">
+//                     <h3>Select an Address</h3>
+//                     {addresses.length > 0 ? (
+//                         <ul>
+//                             {addresses.map((address, index) => (
+//                                 <li
+//                                     key={index}
+//                                     onClick={() => handleSelectAddress(address)}
+//                                     className={selectedAddress === address ? 'selected-address' : ''}
+//                                     style={{ cursor: 'pointer' }}
+//                                 >
+//                                     <p>{address.fullname}, {address.email}, {address.phone}</p>
+//                                     <p>{address.city}, {address.state}, {address.postalCode}, {address.country}</p>
+//                                 </li>
+//                             ))}
+//                         </ul>
+//                     ) : (
+//                         <p>No saved addresses. Add a new one below.</p>
+//                     )}
+//                 </div>
+//                 <form>
+//                     <div className="form-group">
+//                         <label htmlFor="fullname">Full Name</label>
+//                         <input
+//                             type="text"
+//                             id="fullname"
+//                             name="fullname"
+//                             value={billingInfo.fullname || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="email">Email Address</label>
+//                         <input
+//                             type="email"
+//                             id="email"
+//                             name="email"
+//                             value={billingInfo.email || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="phone">Phone Number</label>
+//                         <input
+//                             type="tel"
+//                             id="phone"
+//                             name="phone"
+//                             value={billingInfo.phone || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="city">City</label>
+//                         <input
+//                             type="text"
+//                             id="city"
+//                             name="city"
+//                             value={billingInfo.city || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="state">State/Province</label>
+//                         <input
+//                             type="text"
+//                             id="state"
+//                             name="state"
+//                             value={billingInfo.state || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="postal">Postal Code</label>
+//                         <input
+//                             type="text"
+//                             id="postal"
+//                             name="postal" // Ensure this matches the key in billingInfo
+//                             value={billingInfo.postal || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                     <div className="form-group">
+//                         <label htmlFor="country">Country</label>
+//                         <input
+//                             type="text"
+//                             id="country"
+//                             name="country"
+//                             value={billingInfo.country || ''}
+//                             onChange={handleInputChange}
+//                             required
+//                         />
+//                     </div>
+//                 </form>
+//             </div>
+//             <div className="order-summary">
+//                 <h2>Order Summary</h2>
+//                 <p><strong>Subtotal:</strong> ${getSubtotal()}</p>
+//                 <p id='fee'>*On orders above $1000, shipping is free.</p>
+//                 <p><strong>Shipping:</strong> ${getShippingFee()}</p>
+//                 <p><strong>Total:</strong> ${getTotal()}</p>
+//             </div>
+//             <div className="checkout-buttons">
+//                 <button className='checkoutbutton' type="button" onClick={handlePlaceOrder}>Place Order</button>
+//                 <button className='checkoutbutton' type="button" onClick={() => navigate('/')}>Cancel</button>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default CheckoutPage;
+
+                
+
 import React, { useContext, useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './CheckoutPage.css';
@@ -1044,15 +1890,30 @@ const CheckoutPage = () => {
     let cartProducts = [];
     let isDirectPurchase = false;
 
-    if (location.state && location.state.product) {
-        cartProducts = [{
-            ...location.state.product,
-            size: location.state.size,
-            price: location.state.price
-        }];
-        isDirectPurchase = true;
+    if (location.state) {
+        if (location.state.product) {
+            // Direct purchase from the product page
+            const { product, size, price } = location.state;
+            cartProducts = [{
+                ...product,
+                size,
+                price,
+                quantity: 1, // Assume 1 item for direct purchase
+            }];
+            isDirectPurchase = true;
+        } else if (location.state.products) {
+            // Multiple products from the cart
+            cartProducts = location.state.products.map(product => ({
+                ...product,
+                quantity: cartItems[product.id] || product.quantity
+            }));
+        }
     } else {
-        cartProducts = allProduct.filter(product => cartItems[product.id] > 0);
+        // Default: Products from the cart
+        cartProducts = allProduct.filter(product => cartItems[product.id] > 0).map(product => ({
+            ...product,
+            quantity: cartItems[product.id]
+        }));
     }
 
     const redirectToProductPage = (productId) => {
@@ -1060,10 +1921,7 @@ const CheckoutPage = () => {
     };
 
     const getSubtotal = () => {
-        if (isDirectPurchase) {
-            return cartProducts[0].price;
-        }
-        return getTotalCartAmount();
+        return cartProducts.reduce((subtotal, product) => subtotal + product.price * product.quantity, 0);
     };
 
     const getShippingFee = () => {
@@ -1072,9 +1930,7 @@ const CheckoutPage = () => {
     };
 
     const getTotal = () => {
-        const subtotal = getSubtotal();
-        const shippingFee = getShippingFee();
-        return subtotal + shippingFee;
+        return getSubtotal() + getShippingFee();
     };
 
     const handleInputChange = (e) => {
@@ -1090,7 +1946,7 @@ const CheckoutPage = () => {
             phone: address.phone || '',
             city: address.city || '',
             state: address.state || '',
-            postal: address.postal || '',
+            postal: address.postalCode || '',
             country: address.country || ''
         });
     };
@@ -1120,7 +1976,7 @@ const CheckoutPage = () => {
         const orderProducts = cartProducts.map(product => ({
             _id: product._id,
             id: product.id,
-            quantity: isDirectPurchase ? 1 : cartItems[product.id],
+            quantity: product.quantity,
             size: product.size,
             price: product.price
         }));
@@ -1158,20 +2014,21 @@ const CheckoutPage = () => {
     useEffect(() => {
         fetchAddresses();
     }, []);
+
     return (
         <div className="container">
             <div className="product-info">
                 <h2>Product Information</h2>
-                {cartProducts.map(product => (
-                    <div className="product-item" key={product.id}>
-                        <img src={product.image[0]} alt="Product" className="product-image"
+                {cartProducts.map((product, index) => (
+                    <div className="product-item" key={`${product.id}-${index}`}>
+                        <img src={product.image} alt="Product" className="product-image"
                             onClick={() => redirectToProductPage(product.id)} />
                         <div className="product-details">
                             <p><strong>Item:</strong> {product.name}</p>
                             <p><strong>Price:</strong> ${product.price}</p>
-                            <p><strong>Size:</strong> {product.size}</p> {/* Display size */}
-                            <p><strong>Quantity:</strong> {isDirectPurchase ? 1 : cartItems[product.id]}</p>
-                            <p><strong>Total:</strong> ${product.price * (isDirectPurchase ? 1 : cartItems[product.id])}</p>
+                            <p><strong>Size:</strong> {product.size}</p>
+                            <p><strong>Quantity:</strong> {product.quantity}</p>
+                            <p><strong>Total:</strong> ${product.price * product.quantity}</p>
                         </div>
                     </div>
                 ))}
@@ -1188,7 +2045,7 @@ const CheckoutPage = () => {
                                     key={index}
                                     onClick={() => handleSelectAddress(address)}
                                     className={selectedAddress === address ? 'selected-address' : ''}
-                                    style={{ cursor: 'pointer' }}  // Added cursor pointer style
+                                    style={{ cursor: 'pointer' }}
                                 >
                                     <p>{address.fullname}, {address.email}, {address.phone}</p>
                                     <p>{address.city}, {address.state}, {address.postalCode}, {address.country}</p>
@@ -1199,7 +2056,6 @@ const CheckoutPage = () => {
                         <p>No saved addresses. Add a new one below.</p>
                     )}
                 </div>
-
                 <form>
                     <div className="form-group">
                         <label htmlFor="fullname">Full Name</label>
@@ -1296,3 +2152,27 @@ const CheckoutPage = () => {
 };
 
 export default CheckoutPage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                

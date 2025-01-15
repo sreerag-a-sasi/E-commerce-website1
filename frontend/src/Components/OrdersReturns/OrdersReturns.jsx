@@ -75,14 +75,12 @@
 // export default OrdersReturns;
 
 
-
 import React, { useEffect, useState } from 'react';
 import './OrdersReturns.css';
 
 const OrdersReturns = () => {
   const [orders, setOrders] = useState([]);
 
-  // Fetch all orders on page load
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -108,7 +106,6 @@ const OrdersReturns = () => {
     fetchOrders();
   }, []);
 
-  // Cancel order function
   const cancelOrder = async (orderId) => {
     try {
       const response = await fetch(`http://localhost:4000/orders/${orderId}`, {
@@ -138,7 +135,7 @@ const OrdersReturns = () => {
       <div className="orders-container">
         {orders.length > 0 ? (
           orders.map((order) => (
-            <div className="order-item" key={order.id}>
+            <div className="order-item" key={`${order.id}-${order.size}`}>
               <div className="order-summary">
                 <div className="product-image">
                   <img
@@ -149,8 +146,9 @@ const OrdersReturns = () => {
                 <p><strong>Order ID:</strong> {order.id}</p>
                 <p><strong>Product Name:</strong> {order.product?.name || 'Unknown'}</p>
                 <p><strong>Price:</strong> ${order.totalPrice}</p>
+                <p><strong>Size:</strong> {order.size}</p>
                 <p><strong>Quantity:</strong> {order.quantity}</p>
-                <p><strong>Status:</strong> {order.shipped}</p>
+                <p><strong>Status:</strong> {order.shipped ? 'Shipped' : 'Pending'}</p>
                 <p><strong>Order Date:</strong> {new Date(order.date).toLocaleDateString()}</p>
                 <h3>Billing Information:</h3>
                 <ul className="billing-info">
@@ -175,12 +173,3 @@ const OrdersReturns = () => {
 };
 
 export default OrdersReturns;
-
-
-
-
-
-
-
-
-

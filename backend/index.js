@@ -1200,7 +1200,7 @@ app.post('/getwishlist', fetchUser, async (req, res) => {
 // Add to Cart Endpoint
 app.post('/addtocart', fetchUser, async (req, res) => {
     try {
-        const { id, quantity, size, price } = req.body;
+        const { id, quantity, size, price,_id } = req.body;
 
         if (!id || !quantity || !size || !price) {
             return res.status(400).json({ message: "All fields are required" });
@@ -1239,7 +1239,6 @@ app.post('/addtocart', fetchUser, async (req, res) => {
         }
 
         // Check if the product with the same id and size is already in the user's cart
-        // Check if the product with the same id and size is already in the user's cart
         const existingItem = user.cartData.find(
             (item) => item.id === id && item.size === size
         );
@@ -1254,6 +1253,7 @@ app.post('/addtocart', fetchUser, async (req, res) => {
             {
                 $push: {
                     cartData: {
+                        _id,
                         id,
                         quantity,
                         size,
@@ -2341,6 +2341,8 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
             userAddress = await newAddress.save();
         }
 
+        console.log("Products being processed: ", products); // Log the products array
+
         const orderHistoryEntries = products.map(product => ({
             product: product._id,
             quantity: product.quantity,
@@ -2359,6 +2361,8 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
             user: userId,
         }));
 
+        console.log("Order history entries being created: ", orderHistoryEntries); // Log the order history entries
+
         const orderHistoryDocs = await OrderHistory.insertMany(orderHistoryEntries);
 
         user.order_history.push(...orderHistoryDocs.map(doc => doc._id));
@@ -2370,6 +2374,7 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
         res.status(500).json({ message: "Error placing order", error: error.message });
     }
 });
+
 
 
 // Fetch all addresses for the authenticated user
@@ -2510,24 +2515,25 @@ app.get('/getOrderHistory', fetchUser, async (req, res) => {
 // });
 
 
-app.get('/orderhistory/:productId', async (req, res) => {
+app.get('/orderhistory/:productId/:size', async (req, res) => {
     try {
-        const { productId } = req.params;
+        const { productId, size } = req.params;
 
-        // Find the order history for the product and populate product and user
-        const orderHistory = await OrderHistory.find({ product: productId })
+        // Find the order history for the product and size, and populate product and user
+        const orderHistory = await OrderHistory.find({ product: productId, size: size })
             .populate('product') // Populate product details from the Product model
             .populate('user'); // Populate user details from the User model
 
         if (orderHistory.length === 0) {
-            return res.status(404).json({ message: 'No order history found for this product' });
+            return res.status(404).json({ message: 'No order history found for this product and size' });
         }
 
-        // Optionally, you can map over the orderHistory to return a custom response
+        // Map over the orderHistory to return a custom response
         const result = orderHistory.map(order => ({
             _id: order._id,
             quantity: order.quantity,
             totalPrice: order.totalPrice,
+            size: order.size,
             shipped: order.shipped,
             billingInfo: order.billingInfo,
             user: {
@@ -2668,60 +2674,152 @@ app.post('/clearcart', fetchUser, async (req, res) => {
 // });
 
 
+// app.get('/orders', fetchUser, async (req, res) => {
+//     try {
+//         // Fetch the user's details, including their user_type
+//         const user = await Users.findById(req.user.user_id)
+//             .select('_id user_type') // Only fetch _id and user_type
+//             .populate('user_type'); // Populate user_type for role checking
+
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+
+//         console.log("user type : ", user.user_type);
+
+//         const isAdmin = user.user_type.user_type === 'Admin'; // Assuming user_type has a 'name' field for roles
+
+//         let orders;
+
+//         if (isAdmin) {
+//             // Admin: Fetch all orders
+//             orders = await OrderHistory.find({})
+//                 .populate('user', 'name email') // Populate user details
+//                 .populate('product', 'name image') // Populate product details
+//                 .sort({ date: -1 }); // Sort by date in descending order
+//         } else {
+//             // Regular user: Fetch their own orders
+//             orders = await OrderHistory.find({ user: user._id })
+//                 .populate('product', 'name image') // Populate product details
+//                 .sort({ date: -1 }); // Sort by date in descending order
+//         }
+
+//         if (!orders || orders.length === 0) {
+//             return res.status(400).json({ message: 'No orders found.' });
+//         }
+
+//         // Format the response data
+//         const formattedOrders = orders.map((order) => ({
+//             id: order._id,
+//             user: isAdmin
+//                 ? {
+//                     id: order.user._id,
+//                     name: order.user.name,
+//                     email: order.user.email,
+//                 }
+//                 : undefined, // Include user details only for admin
+//             product: {
+//                 id: order.product._id,
+//                 name: order.product.name,
+//                 image: order.product.image[0], // Assuming `image` is an array
+//             },
+//             quantity: order.quantity,
+//             totalPrice: order.totalPrice,
+//             shipped: order.shipped ? 'Shipped' : 'Pending', // Convert boolean to status
+//             date: order.date,
+//             billingInfo: order.billingInfo, // Include billing info
+//         }));
+
+//         res.status(200).json({ orders: formattedOrders });
+//     } catch (error) {
+//         console.error('Error fetching orders:', error);
+//         res.status(500).json({ message: 'Server error while fetching orders.' });
+//     }
+// });
+
+
+// // Cancel order endpoint
+// app.delete('/orders/:id', fetchUser, async (req, res) => {
+//     try {
+//         const userId = req.user.user_id; // Assuming fetchUser adds `user_id` to req.user
+//         const orderId = req.params.id;
+
+//         // Find the order to ensure it belongs to the authenticated user
+//         const order = await OrderHistory.findOne({ _id: orderId, user: userId });
+
+//         if (!order) {
+//             return res.status(404).json({ message: 'Order not found or unauthorized.' });
+//         }
+
+//         // Delete the order
+//         await OrderHistory.findByIdAndDelete(orderId);
+
+//         res.status(200).json({ message: 'Order canceled successfully.' });
+//     } catch (error) {
+//         console.error('Error canceling order:', error);
+//         res.status(500).json({ message: 'Server error while canceling order.' });
+//     }
+// });
+
+
+
 app.get('/orders', fetchUser, async (req, res) => {
     try {
-        // Fetch the user's details, including their user_type
         const user = await Users.findById(req.user.user_id)
-            .select('_id user_type') // Only fetch _id and user_type
-            .populate('user_type'); // Populate user_type for role checking
+            .select('_id user_type') 
+            .populate('user_type');
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        console.log("user type : ", user.user_type);
-
-        const isAdmin = user.user_type.user_type === 'Admin'; // Assuming user_type has a 'name' field for roles
+        const isAdmin = user.user_type.user_type === 'Admin';
 
         let orders;
 
         if (isAdmin) {
-            // Admin: Fetch all orders
             orders = await OrderHistory.find({})
-                .populate('user', 'name email') // Populate user details
-                .populate('product', 'name image') // Populate product details
-                .sort({ date: -1 }); // Sort by date in descending order
+                .populate('user', 'name email')
+                .populate('product', 'name image')
+                .sort({ date: -1 });
         } else {
-            // Regular user: Fetch their own orders
             orders = await OrderHistory.find({ user: user._id })
-                .populate('product', 'name image') // Populate product details
-                .sort({ date: -1 }); // Sort by date in descending order
+                .populate('product', 'name image')
+                .sort({ date: -1 });
         }
 
         if (!orders || orders.length === 0) {
             return res.status(400).json({ message: 'No orders found.' });
         }
 
-        // Format the response data
+        console.log("Fetched Orders: ", orders);
+
         const formattedOrders = orders.map((order) => ({
             id: order._id,
-            user: isAdmin
+            user: isAdmin && order.user
                 ? {
                     id: order.user._id,
                     name: order.user.name,
                     email: order.user.email,
                 }
-                : undefined, // Include user details only for admin
-            product: {
-                id: order.product._id,
-                name: order.product.name,
-                image: order.product.image[0], // Assuming `image` is an array
-            },
+                : undefined,
+            product: order.product
+                ? {
+                    id: order.product._id,
+                    name: order.product.name,
+                    image: Array.isArray(order.product.image) ? order.product.image[0] : 'default-image-url.jpg',
+                }
+                : {
+                    id: null,
+                    name: 'Product Not Found',
+                    image: 'default-image-url.jpg'
+                },
             quantity: order.quantity,
+            size: order.size,
             totalPrice: order.totalPrice,
-            shipped: order.shipped ? 'Shipped' : 'Pending', // Convert boolean to status
+            shipped: order.shipped ? 'Shipped' : 'Pending',
             date: order.date,
-            billingInfo: order.billingInfo, // Include billing info
+            billingInfo: order.billingInfo,
         }));
 
         res.status(200).json({ orders: formattedOrders });
@@ -2732,20 +2830,20 @@ app.get('/orders', fetchUser, async (req, res) => {
 });
 
 
-// Cancel order endpoint
+
+
+
 app.delete('/orders/:id', fetchUser, async (req, res) => {
     try {
-        const userId = req.user.user_id; // Assuming fetchUser adds `user_id` to req.user
+        const userId = req.user.user_id;
         const orderId = req.params.id;
 
-        // Find the order to ensure it belongs to the authenticated user
         const order = await OrderHistory.findOne({ _id: orderId, user: userId });
 
         if (!order) {
             return res.status(404).json({ message: 'Order not found or unauthorized.' });
         }
 
-        // Delete the order
         await OrderHistory.findByIdAndDelete(orderId);
 
         res.status(200).json({ message: 'Order canceled successfully.' });

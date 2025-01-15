@@ -819,10 +819,11 @@ const ProductDisplay = (props) => {
 
         const cartData = {
             id: product.id,
+            _id:product._id,
             quantity: 1,
             size: selectedSize,
             price: selectedPrice,
-        };
+        };        
 
         const response = await fetch('http://localhost:4000/addtocart', {
             method: 'POST',
@@ -832,6 +833,8 @@ const ProductDisplay = (props) => {
             },
             body: JSON.stringify(cartData),
         });
+
+        console.log("Adding to cart:", cartData);
 
         const result = await response.json();
         if (result.success) {
@@ -890,17 +893,21 @@ const ProductDisplay = (props) => {
             return;
         }
     
-        // Ensure selectedPrice is initialized before using it
         const selectedPrice = product[selectedSize];
     
         navigate('/checkout', {
             state: {
-                product,
+                product: {
+                    id: product.id,
+                    name: product.name,
+                    image: product.image[0],
+                    _id: product._id, // Include `_id` for backend order processing
+                },
                 size: selectedSize,
                 price: selectedPrice,
             },
         });
-    };
+    };    
 
     return (
         <div className='productdisplay'>
@@ -924,14 +931,6 @@ const ProductDisplay = (props) => {
                     <img src={star_dull_icon} alt="" />
                     <p>{product.available}</p>
                 </div>
-                {/* <div className="productdisplay-right-prices">
-                    <div className="productdisplay-right-price-old">
-                        ${product.old_price}
-                    </div>
-                    <div className="productdisplay-right-price-new">
-                        ${product.new_price}
-                    </div>
-                </div> */}
                 <div className="productdisplay-right-description">
                     {product.description}
                 </div>
@@ -1003,8 +1002,6 @@ const ProductDisplay = (props) => {
                 )}
                 <p className="productdisplay-right-category"><span>Category :</span>{product.category}</p>
                 <p className="productdisplay-right-category"><span>Tags :</span>Modern, Latest</p>
-
-                {/* Show the "UPDATE QUANTITY" button if the current user added the product or is an admin */}
             </div>
 
             {/* Modal for item added to cart */}
