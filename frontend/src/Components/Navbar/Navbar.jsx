@@ -670,7 +670,7 @@ const Navbar = () => {
                                 style={{ cursor: 'pointer' }}
                             />
                             <Link style={{ textDecoration: 'none' }} to='/cart' onClick={handleCartClick}><img src={cart_icon} alt="Cart" /></Link>
-                            <div className="nav-cart-count">{getTotalCartItems()}</div>
+                            <div className="nav-cart-count" style={{ outline: 'none' }}>{getTotalCartItems()}</div>
                             <div className="profile-image" onClick={handleProfileClick}>
                                 <img src={userImage} alt="Profile" />
                             </div>
@@ -680,7 +680,7 @@ const Navbar = () => {
                         <>
                             <Link style={{ textDecoration: 'none' }} to='/login'><button>Login</button></Link>
                             <Link style={{ textDecoration: 'none' }} to='/cart' onClick={handleCartClick}><img src={cart_icon} alt="Cart" /></Link>
-                            <div className="nav-cart-count">{getTotalCartItems()}</div>
+                            <div className="nav-cart-count" style={{ outline: 'none' }}>{getTotalCartItems()}</div>
                         </>
                     )
                 }

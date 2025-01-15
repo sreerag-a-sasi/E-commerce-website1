@@ -671,11 +671,21 @@ const ShopContextProvider = (props) => {
         return totalAmount;
     };
 
+    // const getTotalCartItems = () => {
+    //     // The number of unique items is the number of keys in the cartItems object
+    //     return Object.keys(cartItems).length;
+    // };
     const getTotalCartItems = () => {
-        // The number of unique items is the number of keys in the cartItems object
-        return Object.keys(cartItems).filter(itemId => cartItems[itemId] > 0).length;
+        // Check if cartItems is defined and is an object
+        if (cartItems && typeof cartItems === 'object') {
+            // Return the number of unique keys in the cartItems object
+            return Object.keys(cartItems).length;
+        }
+        // If cartItems is not valid, return 0
+        return 0;
     };
-    // console.log(getTotalCartItems());  
+    
+    console.log(getTotalCartItems());  
 
     const clearCart = async () => {
         try {

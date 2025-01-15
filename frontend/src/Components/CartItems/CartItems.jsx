@@ -711,7 +711,6 @@ import minus_icon from '../Assets/minus-button.png';
 
 const CartItems = () => {
     const {
-        getTotalCartAmount,
         allProduct,
         cartItems,
         fetchCartData,

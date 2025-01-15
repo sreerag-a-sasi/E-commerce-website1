@@ -198,7 +198,7 @@
 /* Header Row Styling */
 .cartitems-format-main {
     display: grid;
-    grid-template-columns: 0.5fr 2fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 0.5fr 1fr 0.5fr 0.5fr 0.5fr 0.5fr 0.5fr 0.5fr;
     align-items: center;
     gap: 75px;
     padding: 20px 0px;
@@ -331,7 +331,7 @@
     }
 
     .cartitems-format-main {
-        grid-template-columns: 0.5fr 1.5fr 0.5fr 0.5fr 0.5fr 0.5fr 0.5fr;
+        grid-template-columns: 0.5fr 1fr 0.5fr 0.5fr 0.5fr 0.5fr 0.5fr 0.5fr;
         gap: 20px;
         padding: 15px 0px;
         font-size: 15px;

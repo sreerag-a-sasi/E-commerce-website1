@@ -775,7 +775,7 @@ const ProductDisplay = (props) => {
     const [currentUserType, setCurrentUserType] = useState(null); // To store current user's type
     const [selectedSize, setSelectedSize] = useState(null); // State for selected size
     const navigate = useNavigate(); // Initialize useNavigate
-
+    
     console.log("product : ",product);
     
     // Fetch current user ID and user type once when component mounts
@@ -890,6 +890,10 @@ const ProductDisplay = (props) => {
     const handleBuyNow = () => {
         if (!selectedSize) {
             alert("Please select a size before proceeding to buy.");
+            return;
+        }
+        if(product.available<1){
+            alert("Sorry the product is out of stock we will add the product shortly");
             return;
         }
     

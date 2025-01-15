@@ -1054,21 +1054,9 @@ const ListProduct = () => {
                                     <p>No. {product.id}</p>
                                     <p>nos. {product.available}</p>
                                     <p className='title'>Name: {product.name}</p>
-                                    <p>Old Price: ${product.old_price}</p>
-                                    <p>New Price: ${product.new_price}</p>
                                     <p>Category: {product.category}</p>
                                     {/* <p>Added by: {product.added_by}</p> */}
                                     <p>Seller: {product.seller}</p>
-                                    <div className="price-details">
-                                        <h4>Prices by Size:</h4>
-                                        <ul>
-                                            {Object.entries(product.price || {}).map(([size, price]) => (
-                                                <li key={size}>
-                                                    <strong>{size}:</strong> ${price || 'N/A'}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
                                     <button id='order-button' onClick={() => fetchOrderHistory(product._id)}>Order History</button>
                                 </div>
                             </div>
@@ -1087,7 +1075,7 @@ const ListProduct = () => {
                                 </div>
                                 <div className="image">
                                     <img
-                                        onClick={() => removeProduct(product._id)}
+                                        onClick={() => removeProduct(product.id)}
                                         className='listproduct-remove-icon'
                                         src={remove_icon}
                                         alt=""
@@ -1103,6 +1091,7 @@ const ListProduct = () => {
                                 <ul id='order-details'>
                                     {orderHistories[product._id].map((order) => (
                                         <li key={order._id}>
+                                            <p>Size : {order.size}</p>
                                             <p>Quantity: {order.quantity}</p>
                                             <p>Total Price: ${order.totalPrice}</p>
                                             <p>Shipped Date: {new Date(order.shipped).toLocaleDateString()}</p>

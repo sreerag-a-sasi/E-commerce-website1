@@ -1200,7 +1200,7 @@ app.post('/getwishlist', fetchUser, async (req, res) => {
 // Add to Cart Endpoint
 app.post('/addtocart', fetchUser, async (req, res) => {
     try {
-        const { id, quantity, size, price,_id } = req.body;
+        const { id, quantity, size, price, _id } = req.body;
 
         if (!id || !quantity || !size || !price) {
             return res.status(400).json({ message: "All fields are required" });
@@ -2297,6 +2297,7 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
 
         const userId = req.user.user_id;
 
+        // Create bulk update operations for the available field
         const updateOperations = products.map(product => ({
             updateOne: {
                 filter: { _id: product._id },
@@ -2304,6 +2305,7 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
             }
         }));
 
+        // Execute bulk write to update product quantities
         await Product.bulkWrite(updateOperations);
 
         const user = await Users.findById(userId);
@@ -2497,22 +2499,22 @@ app.get('/getOrderHistory', fetchUser, async (req, res) => {
     }
 });
 
-// app.get('/orderhistory/:productId', async (req, res) => {
-//     try {
-//         const { productId } = req.params;
-//         // Find the order history for the product
-//         const orderHistory = await OrderHistory.find({ product: productId }).populate('product user');
+app.get('/orderhistory/:productId', async (req, res) => {
+    try {
+        const { productId } = req.params;
+        // Find the order history for the product
+        const orderHistory = await OrderHistory.find({ product: productId }).populate('product user');
 
-//         if (orderHistory.length === 0) {
-//             return res.status(404).json({ message: 'No order history found for this product' });
-//         }
+        if (orderHistory.length === 0) {
+            return res.status(404).json({ message: 'No order history found for this product' });
+        }
 
-//         res.status(200).json(orderHistory);
-//     } catch (error) {
-//         console.error('Error fetching order history:', error);
-//         res.status(500).json({ message: 'Error fetching order history' });
-//     }
-// });
+        res.status(200).json(orderHistory);
+    } catch (error) {
+        console.error('Error fetching order history:', error);
+        res.status(500).json({ message: 'Error fetching order history' });
+    }
+});
 
 
 app.get('/orderhistory/:productId/:size', async (req, res) => {
@@ -2766,7 +2768,7 @@ app.post('/clearcart', fetchUser, async (req, res) => {
 app.get('/orders', fetchUser, async (req, res) => {
     try {
         const user = await Users.findById(req.user.user_id)
-            .select('_id user_type') 
+            .select('_id user_type')
             .populate('user_type');
 
         if (!user) {

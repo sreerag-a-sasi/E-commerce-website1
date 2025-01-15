@@ -52,7 +52,7 @@
 .nav-cart-count {
     width: 22px;
     height: 22px;
-    display: flex;
+    display: grid;
     justify-content: center;
     align-items: center;
     margin-top: -35px;

@@ -1978,9 +1978,8 @@ const CheckoutPage = () => {
             id: product.id,
             quantity: product.quantity,
             size: product.size,
-            price: product.price
+            price: getTotal(),
         }));
-
         const orderDetails = {
             products: orderProducts,
             billingInfo,

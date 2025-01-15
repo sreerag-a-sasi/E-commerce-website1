@@ -23,7 +23,6 @@ const Wishlist = () => {
             <div className="wishlist-format-main">
                 <p>Products</p>
                 <p>Title</p>
-                <p>Price</p>
                 <p>Remove</p>
             </div>
             <hr />
@@ -41,7 +40,6 @@ const Wishlist = () => {
                                     onClick={() => redirectToProductPage(e.id)}
                                 />
                                 <p>{e.name}</p>
-                                <p>${e.new_price}</p>
                                 <img className='wishlist-delete-icon' src={remove_icon} onClick={() => { deleteFromWishlist(e.id) }} alt="" />
                             </div>
                             <hr />

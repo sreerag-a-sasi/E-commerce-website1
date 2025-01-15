@@ -115,7 +115,7 @@ exports.Unblockedproduct = function (name, email,productname,productid, support)
                 <body>
                     <div class="col-12 pt-3 pb-3 banner">
                         <div class="container text-white">
-                            <h2>Your Product Has Been Blocked!!!</h2>
+                            <h2>Your Product Has Been Unblocked!!!</h2>
                         </div>
                     </div>
                     <div class="container mt-3 mb-5">
