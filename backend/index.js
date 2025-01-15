@@ -2067,6 +2067,226 @@ app.post('/deletefromcart', fetchUser, async (req, res) => {
 // });
 // 
 
+// app.post('/placeOrder', fetchUser, async (req, res) => {
+//     try {
+//         const { products, billingInfo } = req.body;
+
+//         if (!products || products.length === 0) {
+//             return res.status(400).json({ message: "No products to place order" });
+//         }
+
+//         const userId = req.user.user_id; // Assuming the user's _id is decoded in the JWT
+
+//         // Ensure ObjectId casting with _id for product updates
+//         const updateOperations = products.map(product => ({
+//             updateOne: {
+//                 filter: { _id: product._id },
+//                 update: { $inc: { available: -product.quantity } } // Decrease available stock
+//             }
+//         }));
+
+//         await Product.bulkWrite(updateOperations);
+
+//         const user = await Users.findById(userId);
+//         if (!user) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         console.log("billing info : ", billingInfo);
+//         // Ensure billingInfo contains all required fields
+//         // if (!billingInfo || !billingInfo.postal || !billingInfo.fullname || !billingInfo.email) {
+//         //     return res.status(400).json({ message: "Billing information is incomplete" });
+//         // }
+//         if (!billingInfo) {
+//             console.log("Billing information is missing.");
+//             return res.status(400).json({ message: "Billing information is incomplete" });
+//         }
+
+//         if (!billingInfo.postal) {
+//             console.log("Billing information is missing: postal code.");
+//             return res.status(400).json({ message: "Billing information is incomplete: missing postal code" });
+//         }
+
+//         if (!billingInfo.fullname) {
+//             console.log("Billing information is missing: fullname.");
+//             return res.status(400).json({ message: "Billing information is incomplete: missing fullname" });
+//         }
+
+//         if (!billingInfo.email) {
+//             console.log("Billing information is missing: email.");
+//             return res.status(400).json({ message: "Billing information is incomplete: missing email" });
+//         }
+
+//         // Check if the user already has an address that matches the billing info
+//         let userAddress = await Address.findOne({
+//             user: userId,
+//             fullname: billingInfo.fullname,
+//             email: billingInfo.email,
+//             phone: billingInfo.phone,
+//             city: billingInfo.city,
+//             state: billingInfo.state,
+//             postalCode: billingInfo.postal,
+//             country: billingInfo.country
+//         });
+
+//         // If no matching address is found, create a new one
+//         if (!userAddress) {
+//             const newAddress = new Address({
+//                 fullname: billingInfo.fullname,
+//                 email: billingInfo.email,
+//                 phone: billingInfo.phone,
+//                 city: billingInfo.city,
+//                 state: billingInfo.state,
+//                 postalCode: billingInfo.postal,
+//                 country: billingInfo.country,
+//                 user: userId  // Link the address to the user
+//             });
+
+//             userAddress = await newAddress.save();
+//         }
+
+//         // Prepare order history entries
+//         const orderHistoryEntries = products.map(product => ({
+//             product: product._id, // ObjectId reference for product
+//             quantity: product.quantity,
+//             totalPrice: product.new_price * product.quantity,
+//             billingInfo: {
+//                 fullname: billingInfo.fullname,
+//                 email: billingInfo.email,
+//                 phone: billingInfo.phone,
+//                 city: billingInfo.city,
+//                 state: billingInfo.state,
+//                 postal: billingInfo.postal,
+//                 country: billingInfo.country
+//             },
+//             userAddress: userAddress._id, // Add address reference
+//             user: userId,
+//         }));
+
+//         // Create OrderHistory entries
+//         const orderHistoryDocs = await OrderHistory.insertMany(orderHistoryEntries);
+
+//         // Add Order History references to the user
+//         user.order_history.push(...orderHistoryDocs.map(doc => doc._id));
+//         await user.save();
+
+//         res.status(200).json({ message: "Order placed successfully" });
+//     } catch (error) {
+//         console.error("Error placing order:", error);
+//         res.status(500).json({ message: "Error placing order", error: error.message });
+//     }
+// });
+
+
+
+// app.post('/placeOrder', fetchUser, async (req, res) => {
+//     try {
+//         const { products, billingInfo } = req.body;
+
+//         if (!products || products.length === 0) {
+//             return res.status(400).json({ message: "No products to place order" });
+//         }
+
+//         const userId = req.user.user_id; // Assuming the user's _id is decoded in the JWT
+
+//         // Ensure ObjectId casting with _id for product updates
+//         const updateOperations = products.map(product => ({
+//             updateOne: {
+//                 filter: { _id: product._id },
+//                 update: { $inc: { available: -product.quantity } } // Decrease available stock
+//             }
+//         }));
+
+//         await Product.bulkWrite(updateOperations);
+
+//         const user = await Users.findById(userId);
+//         if (!user) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         console.log("billing info : ", billingInfo);
+
+//         if (!billingInfo) {
+//             console.log("Billing information is missing.");
+//             return res.status(400).json({ message: "Billing information is incomplete" });
+//         }
+
+//         if (!billingInfo.postal) {
+//             console.log("Billing information is missing: postal code.");
+//             return res.status(400).json({ message: "Billing information is incomplete: missing postal code" });
+//         }
+
+//         if (!billingInfo.fullname) {
+//             console.log("Billing information is missing: fullname.");
+//             return res.status(400).json({ message: "Billing information is incomplete: missing fullname" });
+//         }
+
+//         if (!billingInfo.email) {
+//             console.log("Billing information is missing: email.");
+//             return res.status(400).json({ message: "Billing information is incomplete: missing email" });
+//         }
+
+//         // Check if the user already has an address that matches the billing info
+//         let userAddress = await Address.findOne({
+//             user: userId,
+//             fullname: billingInfo.fullname,
+//             email: billingInfo.email,
+//             phone: billingInfo.phone,
+//             city: billingInfo.city,
+//             state: billingInfo.state,
+//             postalCode: billingInfo.postal,
+//             country: billingInfo.country
+//         });
+
+//         // If no matching address is found, create a new one
+//         if (!userAddress) {
+//             const newAddress = new Address({
+//                 fullname: billingInfo.fullname,
+//                 email: billingInfo.email,
+//                 phone: billingInfo.phone,
+//                 city: billingInfo.city,
+//                 state: billingInfo.state,
+//                 postalCode: billingInfo.postal,
+//                 country: billingInfo.country,
+//                 user: userId  // Link the address to the user
+//             });
+
+//             userAddress = await newAddress.save();
+//         }
+
+//         // Prepare order history entries
+//         const orderHistoryEntries = products.map(product => ({
+//             product: product._id, // ObjectId reference for product
+//             quantity: product.quantity,
+//             totalPrice: product.selectedPrice * product.quantity,
+//             size: product.selectedSize, // Include size in the order history
+//             billingInfo: {
+//                 fullname: billingInfo.fullname,
+//                 email: billingInfo.email,
+//                 phone: billingInfo.phone,
+//                 city: billingInfo.city,
+//                 state: billingInfo.state,
+//                 postal: billingInfo.postal,
+//                 country: billingInfo.country
+//             },
+//             userAddress: userAddress._id, // Add address reference
+//             user: userId,
+//         }));
+
+//         // Create OrderHistory entries
+//         const orderHistoryDocs = await OrderHistory.insertMany(orderHistoryEntries);
+
+//         // Add Order History references to the user
+//         user.order_history.push(...orderHistoryDocs.map(doc => doc._id));
+//         await user.save();
+
+//         res.status(200).json({ message: "Order placed successfully" });
+//     } catch (error) {
+//         console.error("Error placing order:", error);
+//         res.status(500).json({ message: "Error placing order", error: error.message });
+//     }
+// });
+
 app.post('/placeOrder', fetchUser, async (req, res) => {
     try {
         const { products, billingInfo } = req.body;
@@ -2075,13 +2295,12 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
             return res.status(400).json({ message: "No products to place order" });
         }
 
-        const userId = req.user.user_id; // Assuming the user's _id is decoded in the JWT
+        const userId = req.user.user_id;
 
-        // Ensure ObjectId casting with _id for product updates
         const updateOperations = products.map(product => ({
             updateOne: {
                 filter: { _id: product._id },
-                update: { $inc: { available: -product.quantity } } // Decrease available stock
+                update: { $inc: { available: -product.quantity } }
             }
         }));
 
@@ -2092,32 +2311,10 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        console.log("billing info : ", billingInfo);
-        // Ensure billingInfo contains all required fields
-        // if (!billingInfo || !billingInfo.postal || !billingInfo.fullname || !billingInfo.email) {
-        //     return res.status(400).json({ message: "Billing information is incomplete" });
-        // }
-        if (!billingInfo) {
-            console.log("Billing information is missing.");
+        if (!billingInfo || !billingInfo.postal || !billingInfo.fullname || !billingInfo.email) {
             return res.status(400).json({ message: "Billing information is incomplete" });
         }
 
-        if (!billingInfo.postal) {
-            console.log("Billing information is missing: postal code.");
-            return res.status(400).json({ message: "Billing information is incomplete: missing postal code" });
-        }
-
-        if (!billingInfo.fullname) {
-            console.log("Billing information is missing: fullname.");
-            return res.status(400).json({ message: "Billing information is incomplete: missing fullname" });
-        }
-
-        if (!billingInfo.email) {
-            console.log("Billing information is missing: email.");
-            return res.status(400).json({ message: "Billing information is incomplete: missing email" });
-        }
-
-        // Check if the user already has an address that matches the billing info
         let userAddress = await Address.findOne({
             user: userId,
             fullname: billingInfo.fullname,
@@ -2129,7 +2326,6 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
             country: billingInfo.country
         });
 
-        // If no matching address is found, create a new one
         if (!userAddress) {
             const newAddress = new Address({
                 fullname: billingInfo.fullname,
@@ -2139,17 +2335,17 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
                 state: billingInfo.state,
                 postalCode: billingInfo.postal,
                 country: billingInfo.country,
-                user: userId  // Link the address to the user
+                user: userId
             });
 
             userAddress = await newAddress.save();
         }
 
-        // Prepare order history entries
         const orderHistoryEntries = products.map(product => ({
-            product: product._id, // ObjectId reference for product
+            product: product._id,
             quantity: product.quantity,
-            totalPrice: product.new_price * product.quantity,
+            totalPrice: product.price * product.quantity,
+            size: product.size,
             billingInfo: {
                 fullname: billingInfo.fullname,
                 email: billingInfo.email,
@@ -2159,14 +2355,12 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
                 postal: billingInfo.postal,
                 country: billingInfo.country
             },
-            userAddress: userAddress._id, // Add address reference
+            userAddress: userAddress._id,
             user: userId,
         }));
 
-        // Create OrderHistory entries
         const orderHistoryDocs = await OrderHistory.insertMany(orderHistoryEntries);
 
-        // Add Order History references to the user
         user.order_history.push(...orderHistoryDocs.map(doc => doc._id));
         await user.save();
 
@@ -2176,6 +2370,7 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
         res.status(500).json({ message: "Error placing order", error: error.message });
     }
 });
+
 
 // Fetch all addresses for the authenticated user
 app.get('/getAddresses', fetchUser, async (req, res) => {

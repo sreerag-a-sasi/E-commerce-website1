@@ -15,6 +15,10 @@ const orderHistorySchema = new Schema({
         type: Number,
         required: true,
     },
+    size:{
+        type: String,
+        required:true,
+    },
     date: {
         type: Date,
         default: Date.now,

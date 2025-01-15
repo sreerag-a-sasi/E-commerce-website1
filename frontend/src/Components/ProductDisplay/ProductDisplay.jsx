@@ -802,10 +802,6 @@ const ProductDisplay = (props) => {
     // Check if the product is already in the cart
     const isInCart = useMemo(() => cartItems[product.id] > 0, [cartItems, product.id]);
 
-    const handleBuyNow = () => {
-        navigate('/checkout', { state: { product } }); // Navigate to the checkout page with product data
-    };
-
     const handleAddToCart = async () => {
         if (!selectedSize) {
             alert("Please select a size before adding to cart.");
@@ -886,6 +882,24 @@ const ProductDisplay = (props) => {
         } else {
             alert('Failed to update quantity: ' + result.message);
         }
+    };
+
+    const handleBuyNow = () => {
+        if (!selectedSize) {
+            alert("Please select a size before proceeding to buy.");
+            return;
+        }
+    
+        // Ensure selectedPrice is initialized before using it
+        const selectedPrice = product[selectedSize];
+    
+        navigate('/checkout', {
+            state: {
+                product,
+                size: selectedSize,
+                price: selectedPrice,
+            },
+        });
     };
 
     return (
