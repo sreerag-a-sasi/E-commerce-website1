@@ -7,6 +7,10 @@ const orderHistorySchema = new Schema({
         ref: 'Product',
         required: true,
     },
+    goto:{
+        type:Number,
+        required:true,
+    },
     quantity: {
         type: Number,
         required: true,

@@ -15,7 +15,7 @@ const Footer = () => {
             </div>
             <ul className="footer-links">
                 <li>Company</li>
-                <li>Products</li>
+                <li><a href="/">Products</a></li>
                 <li>Offices</li>
                 <li>About</li>
                 {/* <li><Link style={{ textDecoration: 'none' }} to={"/seller"} >Become A Seller</Link></li> */}

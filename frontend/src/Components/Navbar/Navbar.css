@@ -182,7 +182,7 @@
 
 @media(max-width:800px) {
     .navbar {
-        padding: 10px 0px;
+        padding: 10px 20px;
     }
     .menu-icon {
         padding: 0px 20px;

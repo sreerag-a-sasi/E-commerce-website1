@@ -77,10 +77,11 @@
 
 import React, { useEffect, useState } from 'react';
 import './OrdersReturns.css';
+import { useNavigate } from 'react-router-dom';
 
 const OrdersReturns = () => {
   const [orders, setOrders] = useState([]);
-
+  
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -129,6 +130,8 @@ const OrdersReturns = () => {
     }
   };
 
+  const navigate = useNavigate();
+
   return (
     <div className="orders-returns">
       <h1>Orders & Returns</h1>
@@ -141,6 +144,7 @@ const OrdersReturns = () => {
                   <img
                     src={order.product?.image || 'default-image-url.jpg'}
                     alt={order.product?.name || 'Product Image'}
+                    onClick={() => navigate(`/product/${order?.goto}`)}
                   />
                 </div>
                 <p><strong>Order ID:</strong> {order.id}</p>
@@ -150,8 +154,8 @@ const OrdersReturns = () => {
                 <p><strong>Quantity:</strong> {order.quantity}</p>
                 <p><strong>Status:</strong> {order.shipped ? 'Shipped' : 'Pending'}</p>
                 <p><strong>Order Date:</strong> {new Date(order.date).toLocaleDateString()}</p>
-                <h3>Billing Information:</h3>
                 <ul className="billing-info">
+                <h3>Billing Information:</h3>
                   <li><strong>Full Name:</strong> {order.billingInfo.fullname}</li>
                   <li><strong>Email:</strong> {order.billingInfo.email}</li>
                   <li><strong>Phone:</strong> {order.billingInfo.phone}</li>

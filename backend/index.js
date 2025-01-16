@@ -2347,6 +2347,7 @@ app.post('/placeOrder', fetchUser, async (req, res) => {
 
         const orderHistoryEntries = products.map(product => ({
             product: product._id,
+            goto:product.id,
             quantity: product.quantity,
             totalPrice: product.price * product.quantity,
             size: product.size,
@@ -2533,6 +2534,7 @@ app.get('/orderhistory/:productId/:size', async (req, res) => {
         // Map over the orderHistory to return a custom response
         const result = orderHistory.map(order => ({
             _id: order._id,
+            goto:order.goto,
             quantity: order.quantity,
             totalPrice: order.totalPrice,
             size: order.size,
@@ -2816,6 +2818,7 @@ app.get('/orders', fetchUser, async (req, res) => {
                     name: 'Product Not Found',
                     image: 'default-image-url.jpg'
                 },
+            goto:order.goto,
             quantity: order.quantity,
             size: order.size,
             totalPrice: order.totalPrice,

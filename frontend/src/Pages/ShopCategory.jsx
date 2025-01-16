@@ -127,7 +127,7 @@ const ShopCategory = (props) => {
 
     const sortProducts = (products) => {
         if (sortOption === 'price') {
-            return [...products].sort((a, b) => a.new_price - b.new_price);
+            return [...products].sort((a, b) => (a.S || 0) - (b.S || 0)); // Use S for price sorting
         } else if (sortOption === 'date') {
             return [...products].sort((a, b) => new Date(b.date) - new Date(a.date));
         }
@@ -185,12 +185,12 @@ const ShopCategory = (props) => {
                 {sortedProducts.map((item, i) => (
                     <Item
                         key={i}
-                        id={item.id}
+                        id={item.id} // Pass only the id, not _id
                         name={item.name}
                         image={item.image}
                         category={item.category}
-                        new_price={item.new_price}
-                        old_price={item.old_price}
+                        S={item.S} // Pass the S price
+                        XXL={item.XXL} // Pass XXL price if needed
                         description={item.description}
                     />
                 ))}

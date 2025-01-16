@@ -73,8 +73,8 @@ const RelatedProducts = ({ product }) => {
                             id={item.id} 
                             name={item.name} 
                             image={item.image} 
-                            new_price={item.new_price} 
-                            old_price={item.old_price} 
+                            S={item.S}    // Pass size S price
+                            XXL={item.XXL} // Pass size XXL price
                             onImageClick={() => handleImageClick(item.id)}  // Pass handleImageClick as prop
                         />
                     ))}

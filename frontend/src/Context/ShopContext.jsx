@@ -685,7 +685,7 @@ const ShopContextProvider = (props) => {
         return 0;
     };
     
-    console.log(getTotalCartItems());  
+    // console.log(getTotalCartItems());  
 
     const clearCart = async () => {
         try {

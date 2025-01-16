@@ -1873,7 +1873,7 @@ import { ShopContext } from '../../Context/ShopContext';
 const CheckoutPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { cartItems, allProduct, getTotalCartAmount, clearCart } = useContext(ShopContext);
+    const { cartItems, allProduct, clearCart } = useContext(ShopContext);
 
     const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
