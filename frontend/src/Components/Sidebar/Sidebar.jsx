@@ -95,6 +95,12 @@ const Sidebar = () => {
                     <p>Product List</p>
                 </div>
             </Link>
+            <Link to={'/Admin/neworders'} style={{ textDecoration: "none" }}>
+                <div className="sidebar-item">
+                    <img src={list_product_icon} alt="order List" />
+                    <p>New Orders</p>
+                </div>
+            </Link>
             {userType === '676c07e68c1c6815439b181c' && (
                 <Link to={'/Admin/userlist'} style={{ textDecoration: "none" }}>
                     <div className="sidebar-item">

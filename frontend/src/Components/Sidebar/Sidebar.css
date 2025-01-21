@@ -36,5 +36,12 @@
     }
     .sidebar-item{
         margin: 0;
+        scale: 0.9;
+    }
+}
+@media(max-width:680px){
+    .sidebar{
+        display: flex;
+        flex-direction: column;
     }
 }

@@ -2518,6 +2518,21 @@ app.get('/orderhistory/:productId', async (req, res) => {
 });
 
 
+app.get('/history/:productId', async (req, res) => {
+    try {
+        const { productId } = req.params;
+        // Find the order history for the product
+        const orderHistory = await OrderHistory.find({ product: productId }).populate('product user');
+
+        res.status(200).json(orderHistory); // Return the order history (empty array if none exists)
+    } catch (error) {
+        console.error('Error fetching order history:', error);
+        res.status(500).json({ message: 'Error fetching order history' });
+    }
+});
+
+
+
 app.get('/orderhistory/:productId/:size', async (req, res) => {
     try {
         const { productId, size } = req.params;
