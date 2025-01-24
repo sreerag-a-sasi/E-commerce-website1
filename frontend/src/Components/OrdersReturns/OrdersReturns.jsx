@@ -74,6 +74,29 @@
 
 // export default OrdersReturns;
 
+  // const cancelOrder = async (orderId) => {
+  //   try {
+  //     const response = await fetch(`http://localhost:4000/orders/${orderId}`, {
+  //       method: 'DELETE',
+  //       headers: {
+  //         Accept: 'application/json',
+  //         'auth-token': localStorage.getItem('auth-token'),
+  //         'Content-Type': 'application/json',
+  //       },
+  //     });
+
+  //     if (response.ok) {
+  //       setOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderId));
+  //       alert('Order canceled successfully.');
+  //     } else {
+  //       const errorData = await response.json();
+  //       alert(errorData.message || 'Failed to cancel the order.');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error canceling order:', error);
+  //   }
+  // };
+
 
 import React, { useEffect, useState } from 'react';
 import './OrdersReturns.css';
@@ -107,28 +130,30 @@ const OrdersReturns = () => {
     fetchOrders();
   }, []);
 
-  const cancelOrder = async (orderId) => {
+  const cancelOrder = async (order) => {
     try {
-      const response = await fetch(`http://localhost:4000/orders/${orderId}`, {
-        method: 'DELETE',
-        headers: {
-          Accept: 'application/json',
-          'auth-token': localStorage.getItem('auth-token'),
-          'Content-Type': 'application/json',
-        },
-      });
+        const response = await fetch(`http://localhost:4000/orders/${order.id}`, {
+            method: 'DELETE',
+            headers: {
+                Accept: 'application/json',
+                'auth-token': localStorage.getItem('auth-token'),
+                'Content-Type': 'application/json',
+            },
+        });
 
-      if (response.ok) {
-        setOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderId));
-        alert('Order canceled successfully.');
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || 'Failed to cancel the order.');
-      }
+        if (response.ok) {
+            // Remove the canceled order from the state
+            setOrders((prevOrders) => prevOrders.filter((o) => o.id !== order.id));
+            alert('Order canceled successfully.');
+        } else {
+            const errorData = await response.json();
+            alert(errorData.message || 'Failed to cancel the order.');
+        }
     } catch (error) {
-      console.error('Error canceling order:', error);
+        console.error('Error canceling order:', error);
     }
-  };
+};
+  
 
   const navigate = useNavigate();
 
@@ -148,7 +173,7 @@ const OrdersReturns = () => {
                   />
                 </div>
                 <p><strong>Order ID:</strong> {order.id}</p>
-                <p><strong>Product Name:</strong> {order.product?.name || 'Unknown'}</p>
+                <p><strong>Product Name:</strong> {order.product?.name}</p>
                 <p><strong>Price:</strong> ${order.totalPrice}</p>
                 <p><strong>Size:</strong> {order.size}</p>
                 <p><strong>Quantity:</strong> {order.quantity}</p>
@@ -164,7 +189,8 @@ const OrdersReturns = () => {
                   <li><strong>Postal:</strong> {order.billingInfo.postal}</li>
                   <li><strong>Country:</strong> {order.billingInfo.country}</li>
                 </ul>
-                <button id="cancel" onClick={() => cancelOrder(order.id)}>Cancel My Order</button>
+                {/* <button id="cancel" onClick={() => cancelOrder(order.id)}>Cancel My Order</button> */}
+                <button id="cancel" onClick={() => cancelOrder(order)}>Cancel My Order</button>
               </div>
             </div>
           ))

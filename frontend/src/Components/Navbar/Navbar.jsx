@@ -609,7 +609,7 @@ const Navbar = () => {
             <div className="nav-logo">
                 <span className="menu-icon" style={{ cursor: 'pointer' }}
                     onClick={toggleSidebar}>&#9776;</span> {/* Pass the function reference */}
-                <img src={logo} alt="Logo" />
+                <img src={logo} id="logo" alt="Logo" />
                 <p>SHOPPER</p>
                 <img className="nav-dropdown" onClick={dropdown_toggle} src={nav_dropdown} alt="Menu Toggle" />
 
@@ -672,7 +672,7 @@ const Navbar = () => {
                             <Link style={{ textDecoration: 'none' }} to='/cart' onClick={handleCartClick}><img src={cart_icon} alt="Cart" /></Link>
                             <div className="nav-cart-count" style={{ outline: 'none' }}>{getTotalCartItems()}</div>
                             <div className="profile-image" onClick={handleProfileClick}>
-                                <img src={userImage} alt="Profile" />
+                                <img src={userImage} id="profileimg" alt="Profile" />
                             </div>
                         </>
                     )

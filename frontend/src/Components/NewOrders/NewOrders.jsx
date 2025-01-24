@@ -60,12 +60,12 @@ const ListProduct = () => {
 
                 // Only include products with order history
                 const productsWithOrderHistory = productsWithHistory.filter(product => product.orderHistory.length > 0);
-                
+
                 // Sort products based on the most recent order's shipped date
-                productsWithOrderHistory.sort((a, b) => 
+                productsWithOrderHistory.sort((a, b) =>
                     new Date(b.orderHistory[0].shipped) - new Date(a.orderHistory[0].shipped)
                 );
-                
+
                 setProductsWithOrderHistory(productsWithOrderHistory);
             } else {
                 console.error("Failed to fetch products.");
@@ -74,6 +74,31 @@ const ListProduct = () => {
             console.error("Error fetching products with order history:", error);
         }
     };
+
+    const cancelOrder = async (orderId, orderDetails) => {
+        try {
+            const response = await fetch(`http://localhost:4000/cancel/${orderId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'auth-token': localStorage.getItem('auth-token'),
+                },
+                body: JSON.stringify(orderDetails),
+            });
+
+            if (response.ok) {
+                alert('Order canceled successfully.');
+                window.location.reload();
+            } else {
+                const errorData = await response.json();
+                alert(errorData.message || 'Failed to cancel the order.');
+            }
+        } catch (error) {
+            console.error('Error canceling order:', error);
+            alert('An unexpected error occurred.');
+        }
+    };
+
 
     useEffect(() => {
         const authToken = localStorage.getItem('auth-token');
@@ -165,6 +190,22 @@ const ListProduct = () => {
                                     <h4>User Ordered: {order.user.name}</h4>
                                     <h4>Email: {order.user.email}</h4>
                                     <h4>Phone: {order.user.phone}</h4>
+                                    <button
+                                        id="cancel"
+                                        onClick={() => cancelOrder(order._id, {
+                                            productId: product.id,
+                                            productName: product.name,
+                                            orderDetails: {
+                                                size: order.size,
+                                                quantity: order.quantity,
+                                                totalPrice: order.totalPrice,
+                                                billingInfo: order.billingInfo,
+                                                user: order.user._id,
+                                            },
+                                        })}
+                                    >
+                                        Cancel This Order
+                                    </button>
                                 </div>
                             </li>
                         </ul>

@@ -834,12 +834,13 @@ const ProductDisplay = (props) => {
             body: JSON.stringify(cartData),
         });
 
-        console.log("Adding to cart:", cartData);
+        //console.log("Adding to cart:", cartData);
 
         const result = await response.json();
         if (result.success) {
+            window.location.reload();
             setIsModalVisible(true); // Show the modal
-            alert(result.message);
+            // alert(result.message);
             // Wait a short time, then hide the modal
             setTimeout(() => {
                 setIsModalVisible(false);
@@ -937,6 +938,9 @@ const ProductDisplay = (props) => {
                 </div>
                 <div className="productdisplay-right-description">
                     {product.description}
+                </div>
+                <div className="productdisplay-right-description">
+                   Seller : {product.seller}
                 </div>
                 <div className="productdisplay-right-size">
                     <h1>Select Size</h1>

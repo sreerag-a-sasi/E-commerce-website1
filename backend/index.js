@@ -305,6 +305,8 @@ const Unblocked_user_template = require("./utils/Unblocked_user").Unblockeduser;
 const blocked_product_template = require("./utils/Blocked_product").blockedproduct;
 const unblocked_product_template = require("./utils/Unblocked_product").Unblockedproduct;
 const outofstock_product_template = require("./utils/Outofstock_product").outofstockproducts;
+const canceled_order_template= require("./utils/Ordercancel").canceledOrderTemplate;
+const canceled_order_template_user=require("./utils/Ordercanceluser").canceledOrderTemplate;
 const sendEmail = require("./utils/send-email").sendEmail;
 
 // Load environment variables
@@ -404,67 +406,7 @@ app.post("/upload", uploadProduct.array('product_images', 10), (req, res) => {
 });
 
 
-// app.post('/addproduct', async (req, res) => {
-//     let products = await Product.find({});
-//     let id;
-//     if (products.length > 0) {
-//         let last_product_array = products.slice(-1);
-//         let last_product = last_product_array[0];
-//         id = last_product.id + 1;
-//     }
-//     else {
-//         id = 1;
-//     }
-//     const product = new Product({
-//         id: id,
-//         name: req.body.name,
-//         image: req.body.image,
-//         category: req.body.category,
-//         new_price: req.body.new_price,
-//         old_price: req.body.old_price,
-//         available: req.body.available,
-//         description: req.body.description,
-//     });
-//     console.log(product);
-//     await product.save();
-//     console.log("Saved");
-//     res.json({
-//         success: true,
-//         name: req.body.name,
-//     });
 
-// });
-
-// app.post('/addproduct', async (req, res) => {
-//     let products = await Product.find({});
-//     let id;
-//     if (products.length > 0) {
-//         let last_product_array = products.slice(-1);
-//         let last_product = last_product_array[0];
-//         id = last_product.id + 1;
-//     } else {
-//         id = 1;
-//     }
-//     const product = new Product({
-//         id: id,
-//         name: req.body.name,
-//         image: req.body.image,
-//         category: req.body.category,
-//         new_price: req.body.new_price,
-//         old_price: req.body.old_price,
-//         available: req.body.available,
-//         description: req.body.description,
-//         added_by: req.body.added_by, // Store user ID
-//         seller: req.body.seller, // Store seller name
-//     });
-//     console.log(product);
-//     await product.save();
-//     console.log("Saved");
-//     res.json({
-//         success: true,
-//         name: req.body.name,
-//     });
-// });
 
 app.post('/addproduct', async (req, res) => {
     console.log(req.body); // Log for verification
@@ -1164,38 +1106,6 @@ app.post('/getwishlist', fetchUser, async (req, res) => {
 });
 
 
-// app.post('/addtocart', fetchUser, async (req, res) => {
-//     try {
-//         const { itemId } = req.body;
-
-//         if (!itemId) {
-//             return res.status(400).json({ message: "Invalid item ID" });
-//         }
-
-//         //console.log("Adding item to cart:", itemId);
-
-//         const updatedUser = await Users.findByIdAndUpdate(
-//             req.user.user_id,
-//             { $inc: { [`cartData.${itemId}`]: 1 } },
-//             { upsert: true, new: true }
-//         );
-
-//         if (!updatedUser) {
-//             return res.status(404).json({ message: "User not found" });
-//         }
-
-//         res.status(200).json({
-//             message: "Item added to the cart",
-//             cartData: updatedUser.cartData,
-//         });
-//     } catch (error) {
-//         console.error("Error adding item to the cart:", error);
-//         res.status(500).json({
-//             message: "Error adding item to the cart",
-//             error: error.message,
-//         });
-//     }
-// });
 
 // Add to Cart Endpoint
 app.post('/addtocart', fetchUser, async (req, res) => {
@@ -1269,7 +1179,7 @@ app.post('/addtocart', fetchUser, async (req, res) => {
         await product.save();
 
         res.status(200).json({
-            message: "Item added to the cart",
+            success:true,
             cartData: updatedUser.cartData,
         });
     } catch (error) {
@@ -1404,51 +1314,6 @@ app.post('/deletefromwishlist', fetchUser, async (req, res) => {
 });
 
 
-// app.post('/removefromcart', fetchUser, async (req, res) => {
-//     try {
-//         const { itemId } = req.body;
-
-//         if (!itemId) {
-//             return res.status(400).json({ message: "Invalid item ID" });
-//         }
-
-//         console.log("Attempting to remove item from cart:", itemId);
-
-//         // Use `findByIdAndUpdate` for atomic update and save
-//         const updatedUser = await Users.findByIdAndUpdate(
-//             req.user.user_id,
-//             {
-//                 $inc: { [`cartData.${itemId}`]: -1 }, // Decrement the item quantity
-//             },
-//             { new: true } // Return the updated document
-//         );
-
-//         if (!updatedUser) {
-//             return res.status(404).json({ message: "User not found" });
-//         }
-
-//         // Remove the item from `cartData` if its quantity becomes 0
-//         if (updatedUser.cartData[itemId] <= 0) {
-//             delete updatedUser.cartData[itemId];
-
-//             // Save the changes after deletion
-//             await updatedUser.save();
-//         }
-
-//         //console.log("Updated cartData:", updatedUser.cartData);
-
-//         res.status(200).json({
-//             message: "Item removed from the cart",
-//             cartData: updatedUser.cartData,
-//         });
-//     } catch (error) {
-//         console.error("Error removing item from the cart:", error);
-//         res.status(500).json({
-//             message: "Error removing item from the cart",
-//             error: error.message,
-//         });
-//     }
-// });
 
 app.post('/removefromcart', fetchUser, async (req, res) => {
     try {
@@ -1510,42 +1375,6 @@ app.post('/removefromcart', fetchUser, async (req, res) => {
 
 
 
-// app.post('/addfromcart', fetchUser, async (req, res) => {
-//     try {
-//         const { itemId } = req.body;
-
-//         if (!itemId) {
-//             return res.status(400).json({ message: "Invalid item ID" });
-//         }
-
-//         console.log("Attempting to add item to cart:", itemId);
-
-
-//         // Use `findByIdAndUpdate` for atomic update and save
-//         const updatedUser = await Users.findByIdAndUpdate(
-//             req.user.user_id,
-//             { $inc: { [`cartData.${itemId}`]: 1 } }, // Increment the item quantity
-//             { new: true } // Return the updated document
-//         );
-
-//         if (!updatedUser) {
-//             return res.status(404).json({ message: "User not found" });
-//         }
-
-//         //console.log("Updated cartData:", updatedUser.cartData);
-
-//         res.status(200).json({
-//             message: "Item added to the cart",
-//             cartData: updatedUser.cartData,
-//         });
-//     } catch (error) {
-//         console.error("Error adding item to the cart:", error);
-//         res.status(500).json({
-//             message: "Error adding item to the cart",
-//             error: error.message,
-//         });
-//     }
-// });
 
 
 // app.post('/addfromcart', fetchUser, async (req, res) => {
@@ -1788,32 +1617,6 @@ app.post('/updatequantity', fetchUser, async (req, res) => {
 });
 
 
-// app.post('/deletefromcart', fetchUser, async (req, res) => {
-//     try {
-//         const { itemId } = req.body;
-//         console.log("Attempting to delete item from cart:", itemId);
-
-//         const userData = await Users.findOne({ _id: req.user.user_id });
-//         if (!userData) {
-//             console.error("User not found");
-//             return res.status(404).json({ errors: "User not found" });
-//         }
-
-//         if (userData.cartData && userData.cartData[itemId]) {
-//             delete userData.cartData[itemId];
-//             userData.markModified('cartData'); // Mark cartData as modified
-//             await userData.save();
-//             console.log("Item successfully deleted from cart");
-//             return res.status(200).json({ message: "Item deleted from the cart" });
-//         } else {
-//             console.error("Item not found in cart");
-//             return res.status(404).json({ errors: "Item not found in cart" });
-//         }
-//     } catch (error) {
-//         console.error("Error deleting item from cart:", error);
-//         return res.status(500).json({ errors: "Error deleting item from the cart" });
-//     }
-// });
 
 app.post('/deletefromcart', fetchUser, async (req, res) => {
     try {
@@ -1863,6 +1666,824 @@ app.post('/deletefromcart', fetchUser, async (req, res) => {
 
 
 
+
+app.post('/placeOrder', fetchUser, async (req, res) => {
+    try {
+        const { products, billingInfo } = req.body;
+
+        if (!products || products.length === 0) {
+            return res.status(400).json({ message: "No products to place order" });
+        }
+
+        const userId = req.user.user_id;
+
+        // Create bulk update operations for the available field
+        const updateOperations = products.map(product => ({
+            updateOne: {
+                filter: { _id: product._id },
+                update: { $inc: { available: -product.quantity } }
+            }
+        }));
+
+        // Execute bulk write to update product quantities
+        await Product.bulkWrite(updateOperations);
+
+        const user = await Users.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (!billingInfo || !billingInfo.postal || !billingInfo.fullname || !billingInfo.email) {
+            return res.status(400).json({ message: "Billing information is incomplete" });
+        }
+
+        let userAddress = await Address.findOne({
+            user: userId,
+            fullname: billingInfo.fullname,
+            email: billingInfo.email,
+            phone: billingInfo.phone,
+            city: billingInfo.city,
+            state: billingInfo.state,
+            postalCode: billingInfo.postal,
+            country: billingInfo.country
+        });
+
+        if (!userAddress) {
+            const newAddress = new Address({
+                fullname: billingInfo.fullname,
+                email: billingInfo.email,
+                phone: billingInfo.phone,
+                city: billingInfo.city,
+                state: billingInfo.state,
+                postalCode: billingInfo.postal,
+                country: billingInfo.country,
+                user: userId
+            });
+
+            userAddress = await newAddress.save();
+        }
+
+        console.log("Products being processed: ", products); // Log the products array
+
+        const orderHistoryEntries = products.map(product => ({
+            product: product._id,
+            goto: product.id,
+            quantity: product.quantity,
+            totalPrice: product.price * product.quantity,
+            size: product.size,
+            billingInfo: {
+                fullname: billingInfo.fullname,
+                email: billingInfo.email,
+                phone: billingInfo.phone,
+                city: billingInfo.city,
+                state: billingInfo.state,
+                postal: billingInfo.postal,
+                country: billingInfo.country
+            },
+            userAddress: userAddress._id,
+            user: userId,
+        }));
+
+        console.log("Order history entries being created: ", orderHistoryEntries); // Log the order history entries
+
+        const orderHistoryDocs = await OrderHistory.insertMany(orderHistoryEntries);
+
+        user.order_history.push(...orderHistoryDocs.map(doc => doc._id));
+        await user.save();
+
+        res.status(200).json({ message: "Order placed successfully" });
+    } catch (error) {
+        console.error("Error placing order:", error);
+        res.status(500).json({ message: "Error placing order", error: error.message });
+    }
+});
+
+
+
+// Fetch all addresses for the authenticated user
+app.get('/getAddresses', fetchUser, async (req, res) => {
+    try {
+        const userId = req.user.user_id; // Use the correct user ID from the JWT token
+        const addresses = await Address.find({ user: userId }); // Find addresses linked to the user
+        res.status(200).json({ addresses });
+    } catch (err) {
+        console.error("Error fetching addresses:", err);
+        res.status(500).json({ message: 'Error fetching addresses', error: err.message });
+    }
+});
+
+app.post('/addAddress', fetchUser, async (req, res) => {
+    try {
+        const { fullname, email, phone, city, state, postalCode, country } = req.body;
+        const userId = req.user.user_id; // Get the user ID from the decoded JWT token
+
+        // Validate the required fields for the address
+        if (!fullname || !email || !phone || !city || !state || !postalCode || !country) {
+            return res.status(400).json({ message: "All address fields are required" });
+        }
+
+        // Check if the same address already exists for the user
+        const existingAddress = await Address.findOne({
+            user: userId,
+            fullname,
+            email,
+            phone,
+            city,
+            state,
+            postalCode,
+            country
+        });
+
+        // If the address exists, skip adding and send the existing address
+        if (existingAddress) {
+            return res.status(200).json({ message: 'Address already exists', address: existingAddress });
+        }
+
+        // Create a new address document
+        const newAddress = new Address({
+            fullname,
+            email,
+            phone,
+            city,
+            state,
+            postalCode,
+            country,
+            user: userId // Link address to the user
+        });
+
+        // Save the new address
+        await newAddress.save();
+
+        res.status(201).json({ message: 'Address added successfully', address: newAddress });
+    } catch (err) {
+        console.error("Error adding address:", err);
+        res.status(500).json({ message: 'Error adding address', error: err.message });
+    }
+});
+
+
+// Get Order History Endpoint
+app.get('/getOrderHistory', fetchUser, async (req, res) => {
+    try {
+        const userId = req.user.user_id;
+        const user = await Users.findById(userId).populate({
+            path: 'order_history',
+            populate: {
+                path: 'product',
+                model: 'Product'
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({ order_history: user.order_history });
+        //console.log("order history : ", user.order_history);
+    } catch (error) {
+        console.error("Error fetching order history:", error);
+        res.status(500).json({ message: "Error fetching order history", error: error.message });
+    }
+});
+
+app.get('/orderhistory/:productId', async (req, res) => {
+    try {
+        const { productId } = req.params;
+        // Find the order history for the product
+        const orderHistory = await OrderHistory.find({ product: productId }).populate('product user');
+
+        if (orderHistory.length === 0) {
+            return res.status(404).json({ message: 'No order history found for this product' });
+        }
+
+        res.status(200).json(orderHistory);
+    } catch (error) {
+        console.error('Error fetching order history:', error);
+        res.status(500).json({ message: 'Error fetching order history' });
+    }
+});
+
+
+app.get('/history/:productId', async (req, res) => {
+    try {
+        const { productId } = req.params;
+        // Find the order history for the product
+        const orderHistory = await OrderHistory.find({ product: productId }).populate('product user');
+
+        res.status(200).json(orderHistory); // Return the order history (empty array if none exists)
+    } catch (error) {
+        console.error('Error fetching order history:', error);
+        res.status(500).json({ message: 'Error fetching order history' });
+    }
+});
+
+
+
+app.get('/orderhistory/:productId/:size', async (req, res) => {
+    try {
+        const { productId, size } = req.params;
+
+        // Find the order history for the product and size, and populate product and user
+        const orderHistory = await OrderHistory.find({ product: productId, size: size })
+            .populate('product') // Populate product details from the Product model
+            .populate('user'); // Populate user details from the User model
+
+        if (orderHistory.length === 0) {
+            return res.status(404).json({ message: 'No order history found for this product and size' });
+        }
+
+        // Map over the orderHistory to return a custom response
+        const result = orderHistory.map(order => ({
+            _id: order._id,
+            goto: order.goto,
+            quantity: order.quantity,
+            totalPrice: order.totalPrice,
+            size: order.size,
+            shipped: order.shipped,
+            billingInfo: order.billingInfo,
+            user: {
+                name: order.user.name,
+                email: order.user.email,
+                phone: order.user.phone
+                // Add any other user fields you want to return
+            }
+        }));
+
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error fetching order history:', error);
+        res.status(500).json({ message: 'Error fetching order history' });
+    }
+});
+
+
+
+// Add Review Endpoint
+app.post('/addreview', fetchUser, async (req, res) => {
+    try {
+        const { productId, content } = req.body;
+        const userId = req.user.user_id;
+
+        // Find the product
+        const product = await Product.findById(productId).populate('reviews');
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        // const user = await Users.findById(userId);
+        // console.log("user from addreview : ",user);
+
+
+        // Create a new review
+        const newReview = new Review({
+            user: userId, // Ensure correct usage of ObjectId
+            content: content,
+            date: new Date()
+        });
+
+        // Save the review and associate it with the product
+        const savedReview = await newReview.save();
+        product.reviews.push(savedReview._id);
+        await product.save();
+
+        res.status(200).json({ message: "Review added successfully", review: savedReview });
+    } catch (error) {
+        console.error("Error adding review:", error);
+        res.status(500).json({ message: "Error adding review", error: error.message });
+    }
+});
+
+
+// Get Product Details with Reviews and User Information
+app.get('/product/:id', async (req, res) => {
+    try {
+        const productId = req.params.id;
+
+        // Fetch product with reviews and populate user details
+        const product = await Product.findById(productId)
+            .populate({
+                path: 'reviews',
+                select: 'content date',
+                populate: {
+                    path: 'user',
+                    model: 'Users',
+                    select: 'name email', // Select fields to return from User model
+                }
+            });
+
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        res.status(200).json({ product, reviews: product.reviews });
+    } catch (error) {
+        console.error("Error fetching product:", error);
+        res.status(500).json({ message: "Error fetching product", error: error.message });
+    }
+});
+
+
+app.post('/clearcart', fetchUser, async (req, res) => {
+    try {
+        const userData = await Users.findOne({ _id: req.user.user_id });
+        if (userData.cartData) {
+            userData.cartData = {}; // Clear all items from the cart
+            await userData.save();
+            console.log("Cart successfully cleared");
+            res.status(200).send("Cart cleared");
+        } else {
+            console.error("Cart is already empty");
+            res.status(400).send({ errors: "Cart is already empty" });
+        }
+    } catch (error) {
+        console.error("Error clearing the cart:", error);
+        res.status(500).send("Error clearing the cart");
+    }
+});
+
+
+
+app.get('/orders', fetchUser, async (req, res) => {
+    try {
+        const user = await Users.findById(req.user.user_id)
+            .select('_id user_type')
+            .populate('user_type');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const isAdmin = user.user_type.user_type === 'Admin';
+
+        let orders;
+
+        if (isAdmin) {
+            orders = await OrderHistory.find({})
+                .populate('user', 'name email')
+                .populate('product', 'name image')
+                .sort({ date: -1 });
+        } else {
+            orders = await OrderHistory.find({ user: user._id })
+                .populate('product', 'name image')
+                .sort({ date: -1 });
+        }
+
+        if (!orders || orders.length === 0) {
+            return res.status(400).json({ message: 'No orders found.' });
+        }
+
+        console.log("Fetched Orders: ", orders);
+
+        const formattedOrders = orders.map((order) => ({
+            id: order._id,
+            user: isAdmin && order.user
+                ? {
+                    id: order.user._id,
+                    name: order.user.name,
+                    email: order.user.email,
+                }
+                : undefined,
+            product: order.product
+                ? {
+                    id: order.product._id,
+                    name: order.product.name,
+                    image: Array.isArray(order.product.image) ? order.product.image[0] : 'default-image-url.jpg',
+                }
+                : {
+                    id: null,
+                    name: 'Product Not Found',
+                    image: 'default-image-url.jpg'
+                },
+            goto: order.goto,
+            quantity: order.quantity,
+            size: order.size,
+            totalPrice: order.totalPrice,
+            shipped: order.shipped ? 'Shipped' : 'Pending',
+            date: order.date,
+            billingInfo: order.billingInfo,
+        }));
+
+        res.status(200).json({ orders: formattedOrders });
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ message: 'Server error while fetching orders.' });
+    }
+});
+
+
+
+
+
+// app.delete('/orders/:id', fetchUser, async (req, res) => {
+//     try {
+//         const userId = req.user.user_id;
+//         const orderId = req.params.id;
+
+//         const order = await OrderHistory.findOne({ _id: orderId, user: userId });
+
+//         if (!order) {
+//             return res.status(404).json({ message: 'Order not found or unauthorized.' });
+//         }
+
+//         await OrderHistory.findByIdAndDelete(orderId);
+
+//         res.status(200).json({ message: 'Order canceled successfully.' });
+//     } catch (error) {
+//         console.error('Error canceling order:', error);
+//         res.status(500).json({ message: 'Server error while canceling order.' });
+//     }
+// });
+
+// app.delete('/cancel/:id', fetchUser, async (req, res) => {
+//     try {
+//         const orderId = req.params.id;
+
+//         // Find the order by orderId
+//         const order = await OrderHistory.findById(orderId);
+
+//         // Check if the order exists
+//         if (!order) {
+//             return res.status(404).json({ message: 'Order not found.' });
+//         }
+
+//         // Proceed with cancellation
+//         await OrderHistory.findByIdAndDelete(orderId);
+
+//         res.status(200).json({ message: 'Order canceled successfully.' });
+//     } catch (error) {
+//         console.error('Error canceling order:', error);
+//         res.status(500).json({ message: 'Server error while canceling order.' });
+//     }
+// });
+
+
+app.delete('/orders/:id', fetchUser, async (req, res) => {
+    try {
+        const userId = req.user.user_id;
+        const orderId = req.params.id;
+
+        if (!orderId) {
+            return res.status(400).json({ message: 'Order ID is required.' });
+        }
+
+        // Populate the product field if it's a reference to another collection
+        const order = await OrderHistory.findOne({ _id: orderId, user: userId }).populate('product');
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found or you are not authorized to cancel it.' });
+        }
+
+        // Log the order object to check product details
+        console.log(order); // Log to inspect the order object and its product details
+
+        await OrderHistory.findByIdAndDelete(orderId);
+
+        const user = await Users.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const supportEmail = 'sreeragakhd2002@gmail.com';
+        const emailTemplate = await canceled_order_template_user(
+            user.name,
+            user.email,
+            {
+                productName: order.product?.name || 'Unknown', // Default to 'Unknown' if product name is missing
+                size: order.size,
+                quantity: order.quantity,
+                totalPrice: order.totalPrice,
+                billingInfo: order.billingInfo,
+                orderDate: order.date,
+            },
+            supportEmail
+        );
+
+        await sendEmail(user.email, 'Order Cancellation Notification', emailTemplate);
+
+        return res.status(200).json({ message: 'Order canceled successfully. An email confirmation has been sent to your registered email.' });
+
+    } catch (error) {
+        console.error('Error canceling order:', error);
+        return res.status(500).json({ message: 'An error occurred while processing your request. Please try again later.' });
+    }
+});
+
+
+
+app.delete('/cancel/:id', fetchUser, async (req, res) => {
+    try {
+        const orderId = req.params.id;
+        const { productId, productName, orderDetails } = req.body; // Extract details sent from the frontend
+
+        // Find the order by orderId
+        const order = await OrderHistory.findById(orderId);
+
+        // Check if the order exists
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found.' });
+        }
+        console.log("order details : ", orderDetails);
+
+        // Fetch the user associated with the order
+        const user = await Users.findById(orderDetails.user); // Use the `user._id` sent from the frontend
+        if (!user) {
+            return res.status(404).json({ message: 'User associated with the order not found.' });
+        }
+
+        // Cancel the order
+        await OrderHistory.findByIdAndDelete(orderId);
+
+        // Send cancellation email
+        const supportEmail = 'sreeragakhd2002@gmail.com'; // Replace with your actual support email
+        const emailTemplate = await canceled_order_template(
+            user.name,
+            user.email,
+            {
+                productId,
+                productName,
+                size: orderDetails.size,
+                quantity: orderDetails.quantity,
+                totalPrice: orderDetails.totalPrice,
+                billingInfo: orderDetails.billingInfo,
+            },
+            supportEmail
+        );
+        await sendEmail(user.email, 'Your Order Has Been Canceled', emailTemplate);
+
+        res.status(200).json({ message: 'Order canceled successfully and email sent to the user.' });
+    } catch (error) {
+        console.error('Error canceling order:', error);
+        res.status(500).json({ message: 'Server error while canceling order.' });
+    }
+});
+
+
+
+
+// Fetch products added by a specific seller
+app.get('/products/seller/:userId', async (req, res) => {
+    try {
+        const sellerId = req.params.userId;
+
+        const products = await Product.find({ added_by: sellerId })
+            .populate('added_by', 'name') // Optionally populate added_by to get seller info
+            .sort({ date: -1 });
+
+        res.status(200).json({ products });
+    } catch (error) {
+        console.error('Error fetching seller products:', error);
+        res.status(500).json({ message: 'Server error while fetching products.' });
+    }
+});
+
+
+
+
+
+// User Route
+app.get("/user", fetchUser, async (req, res) => {
+    try {
+        console.log("Fetching user data for:", req.user.user_id);
+        const user = await Users.findById(req.user.user_id);
+        if (!user) {
+            console.error("User not found");
+            return res.status(401).json({ success: 0, message: "Unauthorized" });
+        }
+        res.status(200).json({ success: 1, user });
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+        res.status(500).json({ success: 0, message: "Internal Server Error" });
+    }
+});
+
+// Start the server
+app.listen(port, (error) => {
+    if (!error) {
+        console.log(`Server running at http://localhost:${port}`);
+    } else {
+        console.error("Error starting server:", error);
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// app.post('/addproduct', async (req, res) => {
+//     let products = await Product.find({});
+//     let id;
+//     if (products.length > 0) {
+//         let last_product_array = products.slice(-1);
+//         let last_product = last_product_array[0];
+//         id = last_product.id + 1;
+//     }
+//     else {
+//         id = 1;
+//     }
+//     const product = new Product({
+//         id: id,
+//         name: req.body.name,
+//         image: req.body.image,
+//         category: req.body.category,
+//         new_price: req.body.new_price,
+//         old_price: req.body.old_price,
+//         available: req.body.available,
+//         description: req.body.description,
+//     });
+//     console.log(product);
+//     await product.save();
+//     console.log("Saved");
+//     res.json({
+//         success: true,
+//         name: req.body.name,
+//     });
+
+// });
+
+// app.post('/addproduct', async (req, res) => {
+//     let products = await Product.find({});
+//     let id;
+//     if (products.length > 0) {
+//         let last_product_array = products.slice(-1);
+//         let last_product = last_product_array[0];
+//         id = last_product.id + 1;
+//     } else {
+//         id = 1;
+//     }
+//     const product = new Product({
+//         id: id,
+//         name: req.body.name,
+//         image: req.body.image,
+//         category: req.body.category,
+//         new_price: req.body.new_price,
+//         old_price: req.body.old_price,
+//         available: req.body.available,
+//         description: req.body.description,
+//         added_by: req.body.added_by, // Store user ID
+//         seller: req.body.seller, // Store seller name
+//     });
+//     console.log(product);
+//     await product.save();
+//     console.log("Saved");
+//     res.json({
+//         success: true,
+//         name: req.body.name,
+//     });
+// });
+
+// app.post('/addtocart', fetchUser, async (req, res) => {
+//     try {
+//         const { itemId } = req.body;
+
+//         if (!itemId) {
+//             return res.status(400).json({ message: "Invalid item ID" });
+//         }
+
+//         //console.log("Adding item to cart:", itemId);
+
+//         const updatedUser = await Users.findByIdAndUpdate(
+//             req.user.user_id,
+//             { $inc: { [`cartData.${itemId}`]: 1 } },
+//             { upsert: true, new: true }
+//         );
+
+//         if (!updatedUser) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         res.status(200).json({
+//             message: "Item added to the cart",
+//             cartData: updatedUser.cartData,
+//         });
+//     } catch (error) {
+//         console.error("Error adding item to the cart:", error);
+//         res.status(500).json({
+//             message: "Error adding item to the cart",
+//             error: error.message,
+//         });
+//     }
+// });
+
+
+// app.post('/removefromcart', fetchUser, async (req, res) => {
+//     try {
+//         const { itemId } = req.body;
+
+//         if (!itemId) {
+//             return res.status(400).json({ message: "Invalid item ID" });
+//         }
+
+//         console.log("Attempting to remove item from cart:", itemId);
+
+//         // Use `findByIdAndUpdate` for atomic update and save
+//         const updatedUser = await Users.findByIdAndUpdate(
+//             req.user.user_id,
+//             {
+//                 $inc: { [`cartData.${itemId}`]: -1 }, // Decrement the item quantity
+//             },
+//             { new: true } // Return the updated document
+//         );
+
+//         if (!updatedUser) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         // Remove the item from `cartData` if its quantity becomes 0
+//         if (updatedUser.cartData[itemId] <= 0) {
+//             delete updatedUser.cartData[itemId];
+
+//             // Save the changes after deletion
+//             await updatedUser.save();
+//         }
+
+//         //console.log("Updated cartData:", updatedUser.cartData);
+
+//         res.status(200).json({
+//             message: "Item removed from the cart",
+//             cartData: updatedUser.cartData,
+//         });
+//     } catch (error) {
+//         console.error("Error removing item from the cart:", error);
+//         res.status(500).json({
+//             message: "Error removing item from the cart",
+//             error: error.message,
+//         });
+//     }
+// });
+
+
+// app.post('/addfromcart', fetchUser, async (req, res) => {
+//     try {
+//         const { itemId } = req.body;
+
+//         if (!itemId) {
+//             return res.status(400).json({ message: "Invalid item ID" });
+//         }
+
+//         console.log("Attempting to add item to cart:", itemId);
+
+
+//         // Use `findByIdAndUpdate` for atomic update and save
+//         const updatedUser = await Users.findByIdAndUpdate(
+//             req.user.user_id,
+//             { $inc: { [`cartData.${itemId}`]: 1 } }, // Increment the item quantity
+//             { new: true } // Return the updated document
+//         );
+
+//         if (!updatedUser) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         //console.log("Updated cartData:", updatedUser.cartData);
+
+//         res.status(200).json({
+//             message: "Item added to the cart",
+//             cartData: updatedUser.cartData,
+//         });
+//     } catch (error) {
+//         console.error("Error adding item to the cart:", error);
+//         res.status(500).json({
+//             message: "Error adding item to the cart",
+//             error: error.message,
+//         });
+//     }
+// });
+
+
+// app.post('/deletefromcart', fetchUser, async (req, res) => {
+//     try {
+//         const { itemId } = req.body;
+//         console.log("Attempting to delete item from cart:", itemId);
+
+//         const userData = await Users.findOne({ _id: req.user.user_id });
+//         if (!userData) {
+//             console.error("User not found");
+//             return res.status(404).json({ errors: "User not found" });
+//         }
+
+//         if (userData.cartData && userData.cartData[itemId]) {
+//             delete userData.cartData[itemId];
+//             userData.markModified('cartData'); // Mark cartData as modified
+//             await userData.save();
+//             console.log("Item successfully deleted from cart");
+//             return res.status(200).json({ message: "Item deleted from the cart" });
+//         } else {
+//             console.error("Item not found in cart");
+//             return res.status(404).json({ errors: "Item not found in cart" });
+//         }
+//     } catch (error) {
+//         console.error("Error deleting item from cart:", error);
+//         return res.status(500).json({ errors: "Error deleting item from the cart" });
+//     }
+// });
 
 
 
@@ -2065,7 +2686,7 @@ app.post('/deletefromcart', fetchUser, async (req, res) => {
 //         res.status(500).json({ message: "Error placing order", error: error.message });
 //     }
 // });
-// 
+//
 
 // app.post('/placeOrder', fetchUser, async (req, res) => {
 //     try {
@@ -2287,374 +2908,6 @@ app.post('/deletefromcart', fetchUser, async (req, res) => {
 //     }
 // });
 
-app.post('/placeOrder', fetchUser, async (req, res) => {
-    try {
-        const { products, billingInfo } = req.body;
-
-        if (!products || products.length === 0) {
-            return res.status(400).json({ message: "No products to place order" });
-        }
-
-        const userId = req.user.user_id;
-
-        // Create bulk update operations for the available field
-        const updateOperations = products.map(product => ({
-            updateOne: {
-                filter: { _id: product._id },
-                update: { $inc: { available: -product.quantity } }
-            }
-        }));
-
-        // Execute bulk write to update product quantities
-        await Product.bulkWrite(updateOperations);
-
-        const user = await Users.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        if (!billingInfo || !billingInfo.postal || !billingInfo.fullname || !billingInfo.email) {
-            return res.status(400).json({ message: "Billing information is incomplete" });
-        }
-
-        let userAddress = await Address.findOne({
-            user: userId,
-            fullname: billingInfo.fullname,
-            email: billingInfo.email,
-            phone: billingInfo.phone,
-            city: billingInfo.city,
-            state: billingInfo.state,
-            postalCode: billingInfo.postal,
-            country: billingInfo.country
-        });
-
-        if (!userAddress) {
-            const newAddress = new Address({
-                fullname: billingInfo.fullname,
-                email: billingInfo.email,
-                phone: billingInfo.phone,
-                city: billingInfo.city,
-                state: billingInfo.state,
-                postalCode: billingInfo.postal,
-                country: billingInfo.country,
-                user: userId
-            });
-
-            userAddress = await newAddress.save();
-        }
-
-        console.log("Products being processed: ", products); // Log the products array
-
-        const orderHistoryEntries = products.map(product => ({
-            product: product._id,
-            goto:product.id,
-            quantity: product.quantity,
-            totalPrice: product.price * product.quantity,
-            size: product.size,
-            billingInfo: {
-                fullname: billingInfo.fullname,
-                email: billingInfo.email,
-                phone: billingInfo.phone,
-                city: billingInfo.city,
-                state: billingInfo.state,
-                postal: billingInfo.postal,
-                country: billingInfo.country
-            },
-            userAddress: userAddress._id,
-            user: userId,
-        }));
-
-        console.log("Order history entries being created: ", orderHistoryEntries); // Log the order history entries
-
-        const orderHistoryDocs = await OrderHistory.insertMany(orderHistoryEntries);
-
-        user.order_history.push(...orderHistoryDocs.map(doc => doc._id));
-        await user.save();
-
-        res.status(200).json({ message: "Order placed successfully" });
-    } catch (error) {
-        console.error("Error placing order:", error);
-        res.status(500).json({ message: "Error placing order", error: error.message });
-    }
-});
-
-
-
-// Fetch all addresses for the authenticated user
-app.get('/getAddresses', fetchUser, async (req, res) => {
-    try {
-        const userId = req.user.user_id; // Use the correct user ID from the JWT token
-        const addresses = await Address.find({ user: userId }); // Find addresses linked to the user
-        res.status(200).json({ addresses });
-    } catch (err) {
-        console.error("Error fetching addresses:", err);
-        res.status(500).json({ message: 'Error fetching addresses', error: err.message });
-    }
-});
-
-
-
-// Add a new address for the authenticated user
-// app.post('/addAddress', fetchUser, async (req, res) => {
-//     try {
-//         const { fullname, email, phone, city, state, postalCode, country } = req.body;
-//         const userId = req.user.user_id; // Get the user ID from the decoded JWT token
-
-//         // Validate the required fields for the address
-//         if (!fullname || !email || !phone || !city || !state || !postalCode || !country) {
-//             return res.status(400).json({ message: "All address fields are required" });
-//         }
-
-//         // Create a new address document
-//         const newAddress = new Address({
-//             fullname,
-//             email,
-//             phone,
-//             city,
-//             state,
-//             postalCode,
-//             country,
-//             user: userId // Link address to the user
-//         });
-
-//         // Save the new address
-//         await newAddress.save();
-
-//         res.status(201).json({ message: 'Address added successfully', address: newAddress });
-//     } catch (err) {
-//         console.error("Error adding address:", err);
-//         res.status(500).json({ message: 'Error adding address', error: err.message });
-//     }
-// });
-app.post('/addAddress', fetchUser, async (req, res) => {
-    try {
-        const { fullname, email, phone, city, state, postalCode, country } = req.body;
-        const userId = req.user.user_id; // Get the user ID from the decoded JWT token
-
-        // Validate the required fields for the address
-        if (!fullname || !email || !phone || !city || !state || !postalCode || !country) {
-            return res.status(400).json({ message: "All address fields are required" });
-        }
-
-        // Check if the same address already exists for the user
-        const existingAddress = await Address.findOne({
-            user: userId,
-            fullname,
-            email,
-            phone,
-            city,
-            state,
-            postalCode,
-            country
-        });
-
-        // If the address exists, skip adding and send the existing address
-        if (existingAddress) {
-            return res.status(200).json({ message: 'Address already exists', address: existingAddress });
-        }
-
-        // Create a new address document
-        const newAddress = new Address({
-            fullname,
-            email,
-            phone,
-            city,
-            state,
-            postalCode,
-            country,
-            user: userId // Link address to the user
-        });
-
-        // Save the new address
-        await newAddress.save();
-
-        res.status(201).json({ message: 'Address added successfully', address: newAddress });
-    } catch (err) {
-        console.error("Error adding address:", err);
-        res.status(500).json({ message: 'Error adding address', error: err.message });
-    }
-});
-
-
-// Get Order History Endpoint
-app.get('/getOrderHistory', fetchUser, async (req, res) => {
-    try {
-        const userId = req.user.user_id;
-        const user = await Users.findById(userId).populate({
-            path: 'order_history',
-            populate: {
-                path: 'product',
-                model: 'Product'
-            }
-        });
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        res.status(200).json({ order_history: user.order_history });
-        //console.log("order history : ", user.order_history);
-    } catch (error) {
-        console.error("Error fetching order history:", error);
-        res.status(500).json({ message: "Error fetching order history", error: error.message });
-    }
-});
-
-app.get('/orderhistory/:productId', async (req, res) => {
-    try {
-        const { productId } = req.params;
-        // Find the order history for the product
-        const orderHistory = await OrderHistory.find({ product: productId }).populate('product user');
-
-        if (orderHistory.length === 0) {
-            return res.status(404).json({ message: 'No order history found for this product' });
-        }
-
-        res.status(200).json(orderHistory);
-    } catch (error) {
-        console.error('Error fetching order history:', error);
-        res.status(500).json({ message: 'Error fetching order history' });
-    }
-});
-
-
-app.get('/history/:productId', async (req, res) => {
-    try {
-        const { productId } = req.params;
-        // Find the order history for the product
-        const orderHistory = await OrderHistory.find({ product: productId }).populate('product user');
-
-        res.status(200).json(orderHistory); // Return the order history (empty array if none exists)
-    } catch (error) {
-        console.error('Error fetching order history:', error);
-        res.status(500).json({ message: 'Error fetching order history' });
-    }
-});
-
-
-
-app.get('/orderhistory/:productId/:size', async (req, res) => {
-    try {
-        const { productId, size } = req.params;
-
-        // Find the order history for the product and size, and populate product and user
-        const orderHistory = await OrderHistory.find({ product: productId, size: size })
-            .populate('product') // Populate product details from the Product model
-            .populate('user'); // Populate user details from the User model
-
-        if (orderHistory.length === 0) {
-            return res.status(404).json({ message: 'No order history found for this product and size' });
-        }
-
-        // Map over the orderHistory to return a custom response
-        const result = orderHistory.map(order => ({
-            _id: order._id,
-            goto:order.goto,
-            quantity: order.quantity,
-            totalPrice: order.totalPrice,
-            size: order.size,
-            shipped: order.shipped,
-            billingInfo: order.billingInfo,
-            user: {
-                name: order.user.name,
-                email: order.user.email,
-                phone: order.user.phone
-                // Add any other user fields you want to return
-            }
-        }));
-
-        res.status(200).json(result);
-    } catch (error) {
-        console.error('Error fetching order history:', error);
-        res.status(500).json({ message: 'Error fetching order history' });
-    }
-});
-
-
-
-// Add Review Endpoint
-app.post('/addreview', fetchUser, async (req, res) => {
-    try {
-        const { productId, content } = req.body;
-        const userId = req.user.user_id;
-
-        // Find the product
-        const product = await Product.findById(productId).populate('reviews');
-        if (!product) {
-            return res.status(404).json({ message: "Product not found" });
-        }
-        // const user = await Users.findById(userId);
-        // console.log("user from addreview : ",user);
-
-
-        // Create a new review
-        const newReview = new Review({
-            user: userId, // Ensure correct usage of ObjectId
-            content: content,
-            date: new Date()
-        });
-
-        // Save the review and associate it with the product
-        const savedReview = await newReview.save();
-        product.reviews.push(savedReview._id);
-        await product.save();
-
-        res.status(200).json({ message: "Review added successfully", review: savedReview });
-    } catch (error) {
-        console.error("Error adding review:", error);
-        res.status(500).json({ message: "Error adding review", error: error.message });
-    }
-});
-
-
-// Get Product Details with Reviews and User Information
-app.get('/product/:id', async (req, res) => {
-    try {
-        const productId = req.params.id;
-
-        // Fetch product with reviews and populate user details
-        const product = await Product.findById(productId)
-            .populate({
-                path: 'reviews',
-                select: 'content date',
-                populate: {
-                    path: 'user',
-                    model: 'Users',
-                    select: 'name email', // Select fields to return from User model
-                }
-            });
-
-        if (!product) {
-            return res.status(404).json({ message: "Product not found" });
-        }
-
-        res.status(200).json({ product, reviews: product.reviews });
-    } catch (error) {
-        console.error("Error fetching product:", error);
-        res.status(500).json({ message: "Error fetching product", error: error.message });
-    }
-});
-
-
-app.post('/clearcart', fetchUser, async (req, res) => {
-    try {
-        const userData = await Users.findOne({ _id: req.user.user_id });
-        if (userData.cartData) {
-            userData.cartData = {}; // Clear all items from the cart
-            await userData.save();
-            console.log("Cart successfully cleared");
-            res.status(200).send("Cart cleared");
-        } else {
-            console.error("Cart is already empty");
-            res.status(400).send({ errors: "Cart is already empty" });
-        }
-    } catch (error) {
-        console.error("Error clearing the cart:", error);
-        res.status(500).send("Error clearing the cart");
-    }
-});
-
-
 
 
 // Endpoint to fetch all orders for the authenticated user
@@ -2779,157 +3032,3 @@ app.post('/clearcart', fetchUser, async (req, res) => {
 //         res.status(500).json({ message: 'Server error while canceling order.' });
 //     }
 // });
-
-
-
-app.get('/orders', fetchUser, async (req, res) => {
-    try {
-        const user = await Users.findById(req.user.user_id)
-            .select('_id user_type')
-            .populate('user_type');
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        const isAdmin = user.user_type.user_type === 'Admin';
-
-        let orders;
-
-        if (isAdmin) {
-            orders = await OrderHistory.find({})
-                .populate('user', 'name email')
-                .populate('product', 'name image')
-                .sort({ date: -1 });
-        } else {
-            orders = await OrderHistory.find({ user: user._id })
-                .populate('product', 'name image')
-                .sort({ date: -1 });
-        }
-
-        if (!orders || orders.length === 0) {
-            return res.status(400).json({ message: 'No orders found.' });
-        }
-
-        console.log("Fetched Orders: ", orders);
-
-        const formattedOrders = orders.map((order) => ({
-            id: order._id,
-            user: isAdmin && order.user
-                ? {
-                    id: order.user._id,
-                    name: order.user.name,
-                    email: order.user.email,
-                }
-                : undefined,
-            product: order.product
-                ? {
-                    id: order.product._id,
-                    name: order.product.name,
-                    image: Array.isArray(order.product.image) ? order.product.image[0] : 'default-image-url.jpg',
-                }
-                : {
-                    id: null,
-                    name: 'Product Not Found',
-                    image: 'default-image-url.jpg'
-                },
-            goto:order.goto,
-            quantity: order.quantity,
-            size: order.size,
-            totalPrice: order.totalPrice,
-            shipped: order.shipped ? 'Shipped' : 'Pending',
-            date: order.date,
-            billingInfo: order.billingInfo,
-        }));
-
-        res.status(200).json({ orders: formattedOrders });
-    } catch (error) {
-        console.error('Error fetching orders:', error);
-        res.status(500).json({ message: 'Server error while fetching orders.' });
-    }
-});
-
-
-
-
-
-app.delete('/orders/:id', fetchUser, async (req, res) => {
-    try {
-        const userId = req.user.user_id;
-        const orderId = req.params.id;
-
-        const order = await OrderHistory.findOne({ _id: orderId, user: userId });
-
-        if (!order) {
-            return res.status(404).json({ message: 'Order not found or unauthorized.' });
-        }
-
-        await OrderHistory.findByIdAndDelete(orderId);
-
-        res.status(200).json({ message: 'Order canceled successfully.' });
-    } catch (error) {
-        console.error('Error canceling order:', error);
-        res.status(500).json({ message: 'Server error while canceling order.' });
-    }
-});
-
-
-
-// Fetch products added by a specific seller
-app.get('/products/seller/:userId', async (req, res) => {
-    try {
-        const sellerId = req.params.userId;
-
-        const products = await Product.find({ added_by: sellerId })
-            .populate('added_by', 'name') // Optionally populate added_by to get seller info
-            .sort({ date: -1 });
-
-        res.status(200).json({ products });
-    } catch (error) {
-        console.error('Error fetching seller products:', error);
-        res.status(500).json({ message: 'Server error while fetching products.' });
-    }
-});
-
-
-
-
-
-// User Route
-app.get("/user", fetchUser, async (req, res) => {
-    try {
-        console.log("Fetching user data for:", req.user.user_id);
-        const user = await Users.findById(req.user.user_id);
-        if (!user) {
-            console.error("User not found");
-            return res.status(401).json({ success: 0, message: "Unauthorized" });
-        }
-        res.status(200).json({ success: 1, user });
-    } catch (error) {
-        console.error("Error fetching user data:", error);
-        res.status(500).json({ success: 0, message: "Internal Server Error" });
-    }
-});
-
-// Start the server
-app.listen(port, (error) => {
-    if (!error) {
-        console.log(`Server running at http://localhost:${port}`);
-    } else {
-        console.error("Error starting server:", error);
-    }
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-

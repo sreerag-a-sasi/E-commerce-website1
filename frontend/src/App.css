@@ -1,5 +1,26 @@
-body::-webkit-scrollbar{
+/* body::-webkit-scrollbar{
   display: none;
+} */
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgb(255, 0, 0); 
+  border-radius: 20px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: red;
+  
 }
 .App {
   text-align: center;
